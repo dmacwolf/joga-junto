@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#080913">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20108%20108%22%3E%3Crect%20width%3D%22108%22%20height%3D%22108%22%20rx%3D%2222%22%20fill%3D%22%23080913%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M48%2C42V62Q48%2C76%2036%2C76%22%20stroke%3D%22%2322E6FF%22%2F%3E%3Cpath%20d%3D%22M72%2C42V62Q72%2C76%2060%2C76%22%20stroke%3D%22%23FF2F7D%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%2322E6FF%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%23FF2F7D%22%2F%3E%3C%2Fsvg%3E">
 <style>html{background:#080913;color-scheme:dark;-webkit-text-size-adjust:100%}[hidden]{display:none!important}img{max-width:100%}</style>
-<meta name="jj-versao" content="150228cd803e">
+<meta name="jj-versao" content="218e795ff2db">
 <title>Joga Junto</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -157,6 +157,12 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 .ped-chip.nao_escolhida,.ped-chip.descartada{color:var(--muted)}
 .ped-pasta{border-left-color:var(--muted)}
 .ped-pasta .ped-thumb{color:var(--cyan)}
+.pill.fav{color:var(--magenta)}
+.game-acoes{display:flex;justify-content:flex-end}
+.game-rm{background:none;border:0;color:var(--muted);font-family:var(--font-mono);font-size:12px;min-height:36px;padding:0 2px;text-decoration:underline}
+.undo{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--line);padding:6px 14px;white-space:nowrap}
+#undo-t{overflow:hidden;text-overflow:ellipsis;font-size:14px}
+#undo-btn{flex:none;background:none;border:0;color:var(--cyan);font-weight:700;font-size:14px;min-height:36px}
 .ped-grande{background:var(--surface-2);display:grid;place-items:center;padding:16px}
 .ped-grande img{width:min(250px,68vw);height:auto}
 .ped-mini{display:flex;align-items:center;gap:14px;margin:10px 0 0;color:var(--muted)}
@@ -247,11 +253,13 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
 /* tabs */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgb(8,9,19);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(34,230,255,.07);
   padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs-in{position:relative;max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab-ind{position:absolute;top:-1px;left:0;width:20%;height:3px;pointer-events:none}
+.tab-ind::before{content:"";position:absolute;top:0;left:18%;right:18%;height:3px;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+.tabs-in.pronto .tab-ind{transition:transform .25s ease}
+@media (prefers-reduced-motion:reduce){.tabs-in.pronto .tab-ind{transition:none}}
 .tab{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:var(--tabh);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;min-width:0;text-transform:uppercase;color:var(--muted);text-decoration:none}
-.tab.on{color:var(--cyan)}
-.tab.on::before{content:"";position:absolute;top:-1px;left:18%;right:18%;height:3px;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
-.count{min-width:19px;height:19px;padding:0 5px;background:var(--magenta);color:var(--magenta-ink);font-size:11px;display:inline-grid;place-items:center;font-family:var(--font-mono);clip-path:var(--cut-xs)}
+.tab.on{color:var(--cyan)}.count{min-width:19px;height:19px;padding:0 5px;background:var(--magenta);color:var(--magenta-ink);font-size:11px;display:inline-grid;place-items:center;font-family:var(--font-mono);clip-path:var(--cut-xs)}
 
 /* overlay, toast, sheet */
 .overlay{position:fixed;inset:0;z-index:50;background:var(--scrim);display:grid;place-items:center;
@@ -313,7 +321,12 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
 
   <section id="v-jogos" aria-label="Jogos" hidden>
     <h2 class="title">Seus jogos</h2>
-    <p class="lede">Dê nota, escreva uma linha e compartilhe. Notas altas contam como jogo favorito na hora de achar sinergia.</p>
+    <p class="lede">Sua lista de jogos. Adicione o que você joga, dê nota e escreva uma linha. Nota 4 ou 5 marca como favorito.</p>
+    <form id="jg-form" class="searchbox" autocomplete="off">
+      <label class="sr" for="jg-q">Adicionar jogo</label>
+      <input id="jg-q" type="text" autocomplete="off" enterkeyhint="search" placeholder="Adicionar jogo: digite o nome">
+    </form>
+    <div class="chips sugg" id="jg-sugg"></div>
     <div id="games-box"></div>
   </section>
 
@@ -346,8 +359,11 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
   </section>
 </div>
 
+<div class="undo" id="undo" role="status" hidden><span id="undo-t"></span><button type="button" id="undo-btn">Desfazer</button></div>
+
 <nav class="tabs" aria-label="Seções">
   <div class="tabs-in">
+    <span class="tab-ind" id="tab-ind" aria-hidden="true"></span>
     <a class="tab" data-v="descobrir" href="#descobrir">Descobrir</a>
     <a class="tab" data-v="matches" href="#matches">Matches <span class="count" id="badge" hidden>0</span></a>
     <a class="tab" data-v="buscar" href="#buscar">Buscar</a>
@@ -389,7 +405,6 @@ var GAMES=[
  {id:'sf6',n:'Street Fighter 6',g:'Luta'},{id:'amongus',n:'Among Us',g:'Social'},{id:'lethal',n:'Lethal Company',g:'Co-op'}
 ];
 var G={};GAMES.forEach(function(g){G[g.id]=g;});
-var GENRES=[];GAMES.forEach(function(g){if(GENRES.indexOf(g.g)<0)GENRES.push(g.g);});
 var GOAL_IDS=['amizade','competitivo','casual','profundo','leve'];
 var GOALS={
  amizade:{n:'Amizade',d:'Conhecer gente e manter contato depois do jogo.'},
@@ -425,6 +440,8 @@ function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(r
   if(!Array.isArray(base.profile.goals)||base.profile.goals.length!==GOAL_IDS.length)base.profile.goals=defaults().profile.goals;
   return base;}}catch(e){}return defaults();}
 var S=load();
+// Quem já tinha dado nota a um jogo fora dos favoritos não perde a nota: o jogo entra na lista.
+Object.keys(S.ratings).forEach(function(id){if(G[id]&&S.profile.games.indexOf(id)<0)S.profile.games.push(id);});
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}renderLevel();}
 var ui={genre:'Todos',thread:null,busy:false,confirmReset:false};
 
@@ -443,11 +460,7 @@ function renderLevel(){
   $('#lv').setAttribute('aria-label','Nível '+lvl+', '+prog+'% para o próximo');
 }
 
-function myGames(){
-  var s=new Set(S.profile.games);
-  Object.keys(S.ratings).forEach(function(id){var r=S.ratings[id];if(r.stars>=4)s.add(id);else if(r.stars&&r.stars<=2)s.delete(id);});
-  return s;
-}
+function myGames(){return new Set(S.profile.games);}
 function wmap(arr){var m={};arr.forEach(function(id,i){m[id]=arr.length-i;});return m;}
 function compat(p){
   var mine=myGames();
@@ -748,21 +761,56 @@ function renderSearch(){
 
 /* ---------- jogos ---------- */
 function renderGames(){
-  var fl=['Todos'].concat(GENRES);
+  var meus=S.profile.games.slice().reverse().map(function(id){return G[id];}).filter(Boolean);
+  if(!meus.length){$('#games-box').innerHTML='<div class="empty"><h3>Sua lista está vazia</h3><p>Busque um jogo acima para adicionar.</p></div>';return;}
+  var gs=[];meus.forEach(function(g){if(gs.indexOf(g.g)<0)gs.push(g.g);});
+  if(gs.indexOf(ui.genre)<0)ui.genre='Todos';
+  var fl=['Todos'].concat(gs);
   var chips=fl.map(function(g){return '<button class="chip btnchip" type="button" data-genre="'+esc(g)+'" aria-pressed="'+(ui.genre===g)+'">'+esc(g)+'</button>';}).join('');
-  var list=GAMES.filter(function(g){return ui.genre==='Todos'||g.g===ui.genre;}).map(function(g){
+  var list=meus.filter(function(g){return ui.genre==='Todos'||g.g===ui.genre;}).map(function(g){
     var r=S.ratings[g.id];
     var n=PLAYERS.filter(function(p){return p.games.indexOf(g.id)>=0;}).length;
     var stars=[1,2,3,4,5].map(function(i){return '<button class="star'+(r&&r.stars>=i?' on':'')+'" type="button" data-rate="'+g.id+':'+i+'" aria-label="'+i+' de 5 para '+esc(g.n)+'" aria-pressed="'+!!(r&&r.stars===i)+'">★</button>';}).join('');
     var rev=r?'<div class="review"><label class="sr" for="rv-'+g.id+'">Sua avaliação de '+esc(g.n)+'</label><input id="rv-'+g.id+'" type="text" data-review="'+g.id+'" maxlength="140" placeholder="Uma linha sobre o jogo" value="'+esc(r.text||'')+'"><button class="btn-pass sm" type="button" data-share="'+g.id+'">Compartilhar</button></div>':'';
-    return '<article class="game"><div class="game-top"><div><h3>'+esc(g.n)+'</h3><div class="meta"><span class="pill">'+esc(g.g)+'</span><span class="mono muted">'+n+' jogadores</span></div></div><div class="stars" role="group" aria-label="Sua nota para '+esc(g.n)+'">'+stars+'</div></div>'+rev+'</article>';
+    return '<article class="game"><div class="game-top"><div><h3>'+esc(g.n)+'</h3><div class="meta"><span class="pill">'+esc(g.g)+'</span>'+(r&&r.stars>=4?'<span class="pill fav">Favorito</span>':'')+'<span class="mono muted">'+n+' jogadores</span></div></div><div class="stars" role="group" aria-label="Sua nota para '+esc(g.n)+'">'+stars+'</div></div>'+rev+'<div class="game-acoes"><button class="game-rm" type="button" data-remove="'+g.id+'" aria-label="Retirar '+esc(g.n)+' da lista">Retirar</button></div></article>';
   }).join('');
-  $('#games-box').innerHTML='<div class="chips scroll" role="group" aria-label="Filtrar por gênero">'+chips+'</div>'+list;
+  $('#games-box').innerHTML=(gs.length>1?'<div class="chips scroll" role="group" aria-label="Filtrar por gênero">'+chips+'</div>':'')+list;
 }
 function rate(id,n){
   var cur=S.ratings[id];
   if(cur&&cur.stars===n){delete S.ratings[id];}else{S.ratings[id]={stars:n,text:(cur&&cur.text)||''};}
   save();renderGames();
+}
+function jgSugestoes(text){
+  var box=$('#jg-sugg');
+  if(!text.trim()){box.innerHTML='';return;}
+  var ids=searchGames(text).slice(0,8);
+  box.innerHTML=ids.length?ids.map(function(id){
+    var na=S.profile.games.indexOf(id)>=0;
+    return '<button class="chip btnchip" type="button" data-add="'+id+'"'+(na?' disabled':'')+'>'+esc(G[id].n)+(na?' ✓':' +')+'</button>';
+  }).join(''):'<span class="hintp">Jogo não encontrado.</span>';
+}
+function adicionar(id){
+  if(!G[id]||S.profile.games.indexOf(id)>=0)return;
+  S.profile.games.push(id);save();
+  $('#jg-q').value='';$('#jg-sugg').innerHTML='';
+  renderGames();toast(G[id].n+' adicionado');
+}
+var undoT=null,undoD=null;
+function fimDesfazer(){undoD=null;$('#undo').hidden=true;}
+function retirar(id){
+  var i=S.profile.games.indexOf(id);if(i<0)return;
+  undoD={id:id,i:i,r:S.ratings[id]};
+  S.profile.games.splice(i,1);delete S.ratings[id];save();renderGames();
+  $('#undo-t').textContent=G[id].n+' retirado';$('#undo').hidden=false;
+  clearTimeout(undoT);undoT=setTimeout(fimDesfazer,5000);
+}
+function desfazer(){
+  if(!undoD)return;
+  clearTimeout(undoT);
+  S.profile.games.splice(undoD.i,0,undoD.id);
+  if(undoD.r)S.ratings[undoD.id]=undoD.r;
+  fimDesfazer();save();renderGames();
 }
 function shareText(id){
   var r=S.ratings[id],g=G[id];if(!r)return '';
@@ -793,7 +841,7 @@ function renderProfile(){
   var counts={};mine.forEach(function(id){counts[G[id].g]=(counts[G[id].g]||0)+1;});
   var keys=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];});
   var max=keys.length?counts[keys[0]]:1;
-  var bars=keys.length?keys.map(function(k){return '<div class="bar"><span>'+esc(k)+'</span><span class="track"><i style="width:'+Math.round(counts[k]/max*100)+'%"></i></span><span class="mono">'+counts[k]+'</span></div>';}).join(''):'<p class="hintp">Marque alguns jogos para ver seu gosto.</p>';
+  var bars=keys.length?keys.map(function(k){return '<div class="bar"><span>'+esc(k)+'</span><span class="track"><i style="width:'+Math.round(counts[k]/max*100)+'%"></i></span><span class="mono">'+counts[k]+'</span></div>';}).join(''):'<p class="hintp">Adicione jogos na aba Jogos para ver seu gosto.</p>';
   function chipRow(list,sel,attr){return '<div class="chips">'+list.map(function(x){var on=Array.isArray(sel)?sel.indexOf(x)>=0:sel===x;return '<button class="chip btnchip" type="button" '+attr+'="'+esc(x)+'" aria-pressed="'+on+'">'+esc(x)+'</button>';}).join('')+'</div>';}
   var last=pr.goals.length-1;
   var rank='<ol class="rank">'+pr.goals.map(function(id,i){
@@ -808,7 +856,6 @@ function renderProfile(){
    +'<div class="group"><div class="lbl">Seus objetivos, em ordem</div><p class="hintp">O primeiro é o que mais importa para você. Quem tem objetivos parecidos, na mesma ordem, aparece primeiro na fila.</p>'+rank+'</div>'
    +'<div class="group"><div class="lbl">Música</div>'
    +'<div class="chips"><button class="chip btnchip" type="button" data-music="1" aria-pressed="'+(pr.music===true)+'">Curto música</button><button class="chip btnchip" type="button" data-music="0" aria-pressed="'+(pr.music===false)+'">Prefiro sem música</button></div></div>'
-   +'<div class="group"><div class="lbl">Jogos favoritos</div><div class="picks">'+GAMES.map(function(g){return '<button class="pick" type="button" data-pick="'+g.id+'" aria-pressed="'+(pr.games.indexOf(g.id)>=0)+'">'+esc(g.n)+'<small>'+esc(g.g)+'</small></button>';}).join('')+'</div></div>'
    +'<div class="group"><div class="lbl">Seu gosto por gênero</div>'+bars+'</div>'
    +'<div class="group"><div class="lbl">Onde você joga</div>'+chipRow(PLATS,pr.plats,'data-plat')+'</div>'
    +'<div class="group"><div class="lbl">Quando você joga</div>'+chipRow(SCHEDS,pr.sched,'data-sched')+'</div>'
@@ -959,6 +1006,8 @@ function route(){
   var h=location.hash.slice(1).split('/')[0],v=VIEWS.indexOf(h)>=0?h:'descobrir';
   VIEWS.forEach(function(n){$('#v-'+n).hidden=n!==v;});
   document.querySelectorAll('.tab').forEach(function(a){var on=a.dataset.v===v||(v==='pedidos'&&a.dataset.v==='perfil');a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  var tabs=Array.prototype.slice.call(document.querySelectorAll('.tab')),ativa=tabs.findIndex(function(a){return a.classList.contains('on');});
+  $('#tab-ind').style.transform='translateX('+(Math.max(ativa,0)*100)+'%)';
   if(v==='descobrir')renderDeck();
   if(v==='matches')renderMatches();
   if(v==='buscar')renderSearch();
@@ -992,7 +1041,9 @@ document.addEventListener('click',function(e){
   if(d.music!==undefined){S.profile.music=d.music==='1';save();renderProfile();return;}
   if(d.plat){toggleIn(S.profile.plats,d.plat);save();renderProfile();return;}
   if(d.sched){S.profile.sched=d.sched;save();renderProfile();return;}
-  if(d.pick){toggleIn(S.profile.games,d.pick);save();renderProfile();return;}
+  if(d.add){adicionar(d.add);return;}
+  if(d.remove){retirar(d.remove);return;}
+  if(t.id==='undo-btn'){desfazer();return;}
   if(t.id==='reset-ask'){ui.confirmReset=true;renderProfile();return;}
   if(t.id==='reset-no'){ui.confirmReset=false;renderProfile();return;}
   if(t.id==='reset-yes'){S=defaults();save();ui.confirmReset=false;ui.thread=null;renderBadge();renderProfile();toast('Dados apagados');return;}
@@ -1001,11 +1052,13 @@ document.addEventListener('input',function(e){
   var t=e.target;
   if(t.dataset&&t.dataset.review){var r=S.ratings[t.dataset.review];if(r){r.text=t.value;save();}return;}
   if(t.id==='q'){suggest(t.value);return;}
+  if(t.id==='jg-q'){jgSugestoes(t.value);return;}
   if(t.id==='handle'){var v=t.value.replace(/[^\w.]/g,'').slice(0,20);if(v!==t.value)t.value=v;S.profile.handle=v||'seu_nick';save();return;}
   if(t.id==='comp'){S.profile.comp=parseInt(t.value,10)||0;$('#comp-label').textContent=modeLabel(S.profile.comp);save();}
 });
 document.addEventListener('submit',function(e){
   if(e.target.id==='q-form'){e.preventDefault();var ids=searchGames($('#q').value);if(ids.length)pickGame(ids[0]);return;}
+  if(e.target.id==='jg-form'){e.preventDefault();var novos=searchGames($('#jg-q').value).filter(function(id){return S.profile.games.indexOf(id)<0;});if(novos.length)adicionar(novos[0]);return;}
   if(e.target.id==='msg-form'){e.preventDefault();sendMsg($('#msg-in').value);var n=$('#msg-in');if(n)n.focus();}
 });
 document.addEventListener('keydown',function(e){
@@ -1019,6 +1072,7 @@ document.addEventListener('keydown',function(e){
 
 renderBadge();
 route();
+requestAnimationFrame(function(){requestAnimationFrame(function(){$('.tabs-in').classList.add('pronto');});});
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>

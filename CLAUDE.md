@@ -7,7 +7,7 @@ Foi criado numa sessão do Claude na web e levado para cá. O dono escreve em po
 
 Uma página única (HTML, CSS e JS puro, sem build), visual de HUD gamer (escuro, neon ciano e magenta, cantos cortados).
 Abas: **Descobrir** (swipe de cards), **Matches** (conversa com assuntos prontos), **Buscar** (digita um jogo e vê
-jogadores por similaridade de jogos), **Jogos** (nota de 1 a 5, uma linha, compartilhar), **Perfil**.
+jogadores por similaridade de jogos), **Jogos** (a lista da pessoa: adicionar, retirar com Desfazer, nota de 1 a 5, uma linha, compartilhar; nota 4 ou 5 marca como favorito), **Perfil**.
 
 Decisões de produto que o dono pediu e devem continuar valendo:
 - O card do jogador **não usa foto**. Mostra jogos favoritos, ritmo (barra casual a competitivo), objetivos em
@@ -66,6 +66,16 @@ que mudou e rode `make_web.py`. Mudança só no banco não avisa: se precisar av
 
 A logo do topo e o ícone do navegador mudam com o site. O ícone do APK na tela do celular fica em `android/` e exige
 instalar o APK de novo.
+
+## Próximos itens combinados com o dono (08/11/2026)
+
+Combinar cada item com ele antes de fazer.
+- Conexão real com Steam (próximo), PSN e Xbox pelo menos. A da PSN não tem caminho oficial: decidir com ele.
+- Catálogo grande de jogos pela Wikidata, se for a melhor opção. Todos os jogos, com marca de multiplayer, não só multiplayer.
+- A pessoa monta o próprio perfil. Quem marca "curto música" pode conectar Spotify, Deezer ou YouTube Music.
+- Em cada jogo favorito, informar como joga (solo, co-op, competitivo, casual, quando o jogo tiver) e horas de jogo, que vêm da conexão.
+- Busca avançada: jogo mais modo (Dark Souls para competitivo, FIFA para co-op, Minecraft no criativo).
+- O Lv hoje é só um contador de atividade local: decidir se ganha sentido ou sai.
 
 ## Repositório
 
