@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#080913">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20108%20108%22%3E%3Crect%20width%3D%22108%22%20height%3D%22108%22%20rx%3D%2222%22%20fill%3D%22%23080913%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M48%2C42V62Q48%2C76%2036%2C76%22%20stroke%3D%22%2322E6FF%22%2F%3E%3Cpath%20d%3D%22M72%2C42V62Q72%2C76%2060%2C76%22%20stroke%3D%22%23FF2F7D%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%2322E6FF%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%23FF2F7D%22%2F%3E%3C%2Fsvg%3E">
 <style>html{background:#080913;color-scheme:dark;-webkit-text-size-adjust:100%}[hidden]{display:none!important}img{max-width:100%}</style>
-<meta name="jj-versao" content="218e795ff2db">
+<meta name="jj-versao" content="8298380466a2">
 <title>Joga Junto</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -158,6 +158,13 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 .ped-pasta{border-left-color:var(--muted)}
 .ped-pasta .ped-thumb{color:var(--cyan)}
 .pill.fav{color:var(--magenta)}
+.steam-btn{display:flex;align-items:center;justify-content:center;align-self:flex-start;text-decoration:none}
+.steam-top{display:flex;align-items:center;gap:12px}
+.steam-top img{width:48px;height:48px;border-radius:4px}
+.steam-top b{font-family:var(--font-display);font-size:16px}
+.steam-jogo{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;border-top:1px solid var(--line);font-size:14px}
+.steam-jogo .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.steam-jogo .d{flex:none;display:flex;align-items:center;gap:10px}
 .game-acoes{display:flex;justify-content:flex-end}
 .game-rm{background:none;border:0;color:var(--muted);font-family:var(--font-mono);font-size:12px;min-height:36px;padding:0 2px;text-decoration:underline}
 .undo{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--line);padding:6px 14px;white-space:nowrap}
@@ -772,7 +779,7 @@ function renderGames(){
     var n=PLAYERS.filter(function(p){return p.games.indexOf(g.id)>=0;}).length;
     var stars=[1,2,3,4,5].map(function(i){return '<button class="star'+(r&&r.stars>=i?' on':'')+'" type="button" data-rate="'+g.id+':'+i+'" aria-label="'+i+' de 5 para '+esc(g.n)+'" aria-pressed="'+!!(r&&r.stars===i)+'">★</button>';}).join('');
     var rev=r?'<div class="review"><label class="sr" for="rv-'+g.id+'">Sua avaliação de '+esc(g.n)+'</label><input id="rv-'+g.id+'" type="text" data-review="'+g.id+'" maxlength="140" placeholder="Uma linha sobre o jogo" value="'+esc(r.text||'')+'"><button class="btn-pass sm" type="button" data-share="'+g.id+'">Compartilhar</button></div>':'';
-    return '<article class="game"><div class="game-top"><div><h3>'+esc(g.n)+'</h3><div class="meta"><span class="pill">'+esc(g.g)+'</span>'+(r&&r.stars>=4?'<span class="pill fav">Favorito</span>':'')+'<span class="mono muted">'+n+' jogadores</span></div></div><div class="stars" role="group" aria-label="Sua nota para '+esc(g.n)+'">'+stars+'</div></div>'+rev+'<div class="game-acoes"><button class="game-rm" type="button" data-remove="'+g.id+'" aria-label="Retirar '+esc(g.n)+' da lista">Retirar</button></div></article>';
+    return '<article class="game"><div class="game-top"><div><h3>'+esc(g.n)+'</h3><div class="meta"><span class="pill">'+esc(g.g)+'</span>'+(r&&r.stars>=4?'<span class="pill fav">Favorito</span>':'')+'<span class="mono muted">'+n+' jogadores</span>'+(STEAM.h[g.id]?'<span class="mono muted">'+STEAM.h[g.id]+' h na Steam</span>':'')+'</div></div><div class="stars" role="group" aria-label="Sua nota para '+esc(g.n)+'">'+stars+'</div></div>'+rev+'<div class="game-acoes"><button class="game-rm" type="button" data-remove="'+g.id+'" aria-label="Retirar '+esc(g.n)+' da lista">Retirar</button></div></article>';
   }).join('');
   $('#games-box').innerHTML=(gs.length>1?'<div class="chips scroll" role="group" aria-label="Filtrar por gênero">'+chips+'</div>':'')+list;
 }
@@ -851,6 +858,7 @@ function renderProfile(){
   }).join('')+'</ol>';
   $('#profile-box').innerHTML=
     '<div class="group"><label class="lbl" for="handle">Seu nick</label><input id="handle" type="text" maxlength="20" autocomplete="off" value="'+esc(pr.handle)+'"></div>'
+   +'<div class="group" id="steam-box"></div>'
    +'<div class="group"><div class="lblrow"><label class="lbl" for="comp">Jeito de jogar</label><span class="mono" id="comp-label">'+modeLabel(pr.comp)+'</span></div>'
    +'<input id="comp" type="range" min="0" max="100" step="5" value="'+pr.comp+'"><div class="lblrow muted mono"><span>CASUAL</span><span>COMPETITIVO</span></div></div>'
    +'<div class="group"><div class="lbl">Seus objetivos, em ordem</div><p class="hintp">O primeiro é o que mais importa para você. Quem tem objetivos parecidos, na mesma ordem, aparece primeiro na fila.</p>'+rank+'</div>'
@@ -862,6 +870,75 @@ function renderProfile(){
    +'<div class="group danger">'+(ui.confirmReset
       ?'<p class="hintp">Isso apaga perfil, notas, curtidas e conversas deste navegador. Não dá para desfazer.</p><div class="actions" style="margin:0"><button class="btn-like sm" type="button" id="reset-yes">Apagar tudo</button><button class="btn-pass sm" type="button" id="reset-no">Cancelar</button></div>'
       :'<button class="btn-pass sm" type="button" id="reset-ask" style="align-self:flex-start">Apagar meus dados</button>')+'</div>';
+  renderSteam();
+}
+
+/* ---------- steam ---------- */
+var ST_FUNC='https://mlfxwdfuadcactwwbjyl.supabase.co/functions/v1/steam';
+var ST_APK='https://github.com/dmacwolf/joga-junto/releases/download/apk-latest/jogajunto.apk';
+var ST_TOKEN='jogajunto-steam-token',ST_NOVO='jogajunto-steam-novo',ST_ERRO='jogajunto-steam-erro';
+var ST_MSG={cancelado:'A conexão com a Steam foi cancelada.',inativa:'A conexão com a Steam ainda não está ativa.',falha:'Não consegui conectar com a Steam. Tente de novo.'};
+var ST_NO_APK=/JogaJuntoApp/.test(navigator.userAgent),ST_APK_ANTIGO=!ST_NO_APK&&/; wv\)/.test(navigator.userAgent);
+var STEAM={ativa:false,d:null,h:{},erro:''};
+function steamCat(nome){
+  var c=compact(nome);
+  if(/^easportsfc|^fc\d/.test(c))return 'fc';
+  if(c==='sidmeierscivilizationvi')return 'civ6';
+  for(var i=0;i<GAMES.length;i++){if(compact(GAMES[i].n)===c)return GAMES[i].id;}
+  return '';
+}
+function steamCarrega(){
+  pedCall('jj_steam_dados',{token:pedGet(ST_TOKEN)}).then(function(d){
+    STEAM.d=d||null;STEAM.h={};
+    if(!d){pedSet(ST_TOKEN,'');}
+    else{(d.jogos||[]).forEach(function(j){var id=steamCat(j.n);if(id&&!(id in STEAM.h))STEAM.h[id]=j.h;});}
+    renderSteam();
+    if(!$('#v-jogos').hidden)renderGames();
+  }).catch(function(){});
+}
+function steamInicio(){
+  var novo=pedGet(ST_NOVO),erro=pedGet(ST_ERRO);
+  if(novo){
+    var velho=pedGet(ST_TOKEN);
+    if(velho&&velho!==novo)pedCall('jj_steam_apagar',{token:velho}).catch(function(){});
+    pedSet(ST_TOKEN,novo);pedSet(ST_NOVO,'');
+  }
+  if(erro){STEAM.erro=ST_MSG[erro]||ST_MSG.falha;pedSet(ST_ERRO,'');}
+  fetch(ST_FUNC+'?acao=status').then(function(r){return r.json();}).then(function(d){STEAM.ativa=!!d.ativa;renderSteam();}).catch(function(){});
+  if(pedGet(ST_TOKEN))steamCarrega();
+}
+function steamSair(){
+  var t=pedGet(ST_TOKEN);
+  if(t)pedCall('jj_steam_apagar',{token:t}).catch(function(){});
+  pedSet(ST_TOKEN,'');STEAM.d=null;STEAM.h={};STEAM.erro='';
+}
+function renderSteam(){
+  var box=$('#steam-box');if(!box)return;
+  var d=STEAM.d,h='<div class="lbl">Steam</div>';
+  var botao=function(txt){return '<a class="btn-like sm steam-btn" href="'+ST_FUNC+'?acao=login&amp;volta='+(ST_NO_APK?'app':'site')+'">'+txt+'</a>';};
+  if(STEAM.erro&&!d)h+='<p class="ped-erro">'+esc(STEAM.erro)+'</p>';
+  if(d){
+    h+='<div class="steam-top">'+(d.avatar?'<img src="'+esc(d.avatar)+'" alt="">':'')+'<div><b>'+esc(d.nome)+'</b><div class="mono muted">'+d.total_jogos+' jogos · '+d.total_horas+' h</div></div></div>';
+    if(d.privado){
+      h+='<p class="hintp">Sua biblioteca está privada. Na Steam, abra Perfil, Editar perfil, Privacidade e deixe "Detalhes do jogo" como Público. Depois conecte de novo.</p>'+botao('Conectar de novo');
+    }else{
+      h+='<div>'+(d.jogos||[]).filter(function(j){return j.h>0;}).slice(0,8).map(function(j){
+        var id=steamCat(j.n),na=id&&S.profile.games.indexOf(id)>=0;
+        var acao=id?(na?'<span class="mono muted">na lista</span>':'<button class="chip btnchip" type="button" data-add="'+id+'">+ Lista</button>'):'';
+        return '<div class="steam-jogo"><span class="n">'+esc(j.n)+'</span><span class="d"><span class="mono muted">'+j.h+' h</span>'+acao+'</span></div>';
+      }).join('')+'</div>';
+    }
+    h+='<button class="btn-pass sm" type="button" id="steam-off" style="align-self:flex-start">Desconectar</button>';
+  }else if(pedGet(ST_TOKEN)){
+    h+='<p class="hintp">Carregando sua Steam...</p>';
+  }else if(ST_APK_ANTIGO){
+    h+='<p class="hintp">Para conectar a Steam, instale a versão nova do app.</p><a class="btn-like sm steam-btn" href="'+ST_APK+'">Baixar versão nova</a>';
+  }else if(STEAM.ativa){
+    h+='<p class="hintp">Mostre sua biblioteca e suas horas de jogo. O login é feito no site oficial da Steam, e o Joga Junto nunca vê sua senha.</p>'+botao('Conectar Steam');
+  }else{
+    h+='<p class="hintp">A conexão com a Steam chega em breve.</p>';
+  }
+  box.innerHTML=h;
 }
 
 /* ---------- pedidos de mudança ---------- */
@@ -1041,12 +1118,13 @@ document.addEventListener('click',function(e){
   if(d.music!==undefined){S.profile.music=d.music==='1';save();renderProfile();return;}
   if(d.plat){toggleIn(S.profile.plats,d.plat);save();renderProfile();return;}
   if(d.sched){S.profile.sched=d.sched;save();renderProfile();return;}
-  if(d.add){adicionar(d.add);return;}
+  if(d.add){adicionar(d.add);renderSteam();return;}
+  if(t.id==='steam-off'){steamSair();renderSteam();renderGames();toast('Steam desconectada');return;}
   if(d.remove){retirar(d.remove);return;}
   if(t.id==='undo-btn'){desfazer();return;}
   if(t.id==='reset-ask'){ui.confirmReset=true;renderProfile();return;}
   if(t.id==='reset-no'){ui.confirmReset=false;renderProfile();return;}
-  if(t.id==='reset-yes'){S=defaults();save();ui.confirmReset=false;ui.thread=null;renderBadge();renderProfile();toast('Dados apagados');return;}
+  if(t.id==='reset-yes'){steamSair();S=defaults();save();ui.confirmReset=false;ui.thread=null;renderBadge();renderProfile();toast('Dados apagados');return;}
 });
 document.addEventListener('input',function(e){
   var t=e.target;
@@ -1070,6 +1148,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='ArrowLeft')decide('pass');
 });
 
+steamInicio();
 renderBadge();
 route();
 requestAnimationFrame(function(){requestAnimationFrame(function(){$('.tabs-in').classList.add('pronto');});});

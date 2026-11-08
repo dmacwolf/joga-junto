@@ -109,8 +109,10 @@ public class AvisoJob extends JobService {
         if (gerente == null) {
             return;
         }
-        gerente.createNotificationChannel(
-                new NotificationChannel(CANAL, "Novidades do app", NotificationManager.IMPORTANCE_DEFAULT));
+        NotificationChannel canal =
+                new NotificationChannel(CANAL, "Novidades do app", NotificationManager.IMPORTANCE_DEFAULT);
+        canal.setShowBadge(true);
+        gerente.createNotificationChannel(canal);
 
         Intent abrir = new Intent(this, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -124,6 +126,7 @@ public class AvisoJob extends JobService {
                 .setStyle(new Notification.BigTextStyle().bigText(mensagem))
                 .setContentIntent(toque)
                 .setAutoCancel(true)
+                .setNumber(1)
                 .build();
         gerente.notify(1, aviso);
     }

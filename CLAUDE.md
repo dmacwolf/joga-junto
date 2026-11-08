@@ -67,10 +67,18 @@ que mudou e rode `make_web.py`. Mudança só no banco não avisa: se precisar av
 A logo do topo e o ícone do navegador mudam com o site. O ícone do APK na tela do celular fica em `android/` e exige
 instalar o APK de novo.
 
+## Conexão com a Steam
+
+Login oficial por OpenID na função `supabase/functions/steam`, com dados em `private.steam_conexoes` (`banco/steam.sql`).
+Sem contas no app, cada aparelho guarda um token. No APK, o retorno passa por `web/steam-volta.html` e `jogajunto://steam`.
+A chave `STEAM_KEY` só existe nos segredos do Supabase: `python tools/definir_chave_steam.py`, nunca pelo chat.
+Publicar a função: `npx.cmd --yes supabase@3.0.0 functions deploy steam --remote=mlfxwdfuadcactwwbjyl --no-verify-jwt --use-api --yes`.
+
 ## Próximos itens combinados com o dono (08/11/2026)
 
 Combinar cada item com ele antes de fazer.
-- Conexão real com Steam (próximo), PSN e Xbox pelo menos. A da PSN não tem caminho oficial: decidir com ele.
+- Área de login, com entrada direta pela conta Google.
+- Conexão real com PSN e Xbox pelo menos (Steam já feita). A da PSN não tem caminho oficial: decidir com ele.
 - Catálogo grande de jogos pela Wikidata, se for a melhor opção. Todos os jogos, com marca de multiplayer, não só multiplayer.
 - A pessoa monta o próprio perfil. Quem marca "curto música" pode conectar Spotify, Deezer ou YouTube Music.
 - Em cada jogo favorito, informar como joga (solo, co-op, competitivo, casual, quando o jogo tiver) e horas de jogo, que vêm da conexão.

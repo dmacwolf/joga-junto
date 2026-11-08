@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setUserAgentString(settings.getUserAgentString() + " JogaJuntoApp");
 
         final Uri home = Uri.parse(BuildConfig.APP_URL);
 
@@ -74,13 +75,40 @@ public class MainActivity extends Activity {
             }
         });
 
-        web.loadUrl(BuildConfig.APP_URL);
+        if (!abrirRetornoSteam(getIntent())) {
+            web.loadUrl(BuildConfig.APP_URL);
+        }
 
         AvisoJob.agendar(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        abrirRetornoSteam(intent);
+    }
+
+    /** Depois do login no navegador, a Steam volta por jogajunto://steam e o app guarda a conexão. */
+    private boolean abrirRetornoSteam(Intent intent) {
+        Uri dados = intent == null ? null : intent.getData();
+        if (dados == null || !"jogajunto".equals(dados.getScheme()) || !"steam".equals(dados.getHost())) {
+            return false;
+        }
+        String token = dados.getQueryParameter("t");
+        String erro = dados.getQueryParameter("erro");
+        String fragmento = "erro=falha";
+        if (token != null && token.matches("[0-9a-f]{64}")) {
+            fragmento = "t=" + token;
+        } else if (erro != null && erro.matches("[a-z]{1,20}")) {
+            fragmento = "erro=" + erro;
+        }
+        web.loadUrl(BuildConfig.APP_URL + "steam-volta.html#" + fragmento);
+        return true;
     }
 
     @Override
