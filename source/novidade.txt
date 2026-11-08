@@ -1,1 +1,1 @@
-Tem APK novo do Joga Junto, com tela de abertura e aviso no celular.
+Agora o Joga Junto tem login com e-mail e senha.

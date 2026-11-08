@@ -69,7 +69,8 @@ instalar o APK de novo.
 
 ## Contas (decidido em 08/11/2026)
 
-Login obrigatório, só Google por enquanto, 18 anos ou mais, e os dados do celular vão para a conta no primeiro login.
+Depois da tela da logo, login obrigatório com e-mail e senha (o Google é opcional e aparece se for ligado). 18 anos ou mais, e os dados do celular vão para a conta no primeiro login.
+A entrada só aparece se houver jeito real de entrar: Google ligado ou `Confirm email` desligado no Supabase, porque o envio padrão de e-mails do Supabase é muito limitado. Recuperar senha ainda não existe: precisa de um serviço de e-mail (SMTP).
 Usa Supabase Auth com PKCE, sem biblioteca; estado da pessoa em `private.contas` (`banco/contas.sql`). A tela de entrada só
 vale quando o provedor Google está ligado no Supabase (`/auth/v1/settings`). No APK, o login abre no navegador, porque o
 Google bloqueia WebView, e volta por `web/login-volta.html` e `jogajunto://login`. Vem antes de amigos e posts.

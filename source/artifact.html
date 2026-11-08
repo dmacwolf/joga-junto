@@ -155,6 +155,12 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 #abertura.fim{opacity:0;pointer-events:none}
 body.carregando .app,body.carregando .tabs,body.sem-abas .tabs,body.sem-abas .lv{visibility:hidden}
 .google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:52px;background:#fff;color:#1f1f1f;border:0;border-radius:4px;font-weight:600;font-size:16px;text-decoration:none}
+.entrar input{width:100%;height:46px;border:1.5px solid var(--line);background:var(--surface-2);padding:0 12px;font-size:16px;border-radius:2px;box-sizing:border-box}
+.entrar input:focus{border-color:var(--cyan)}
+.entrar .lbl{margin-top:6px}
+.entrar .btn-like{flex:none;height:52px;margin-top:8px}
+#en-modo{display:block;margin:0 auto}
+.entrar-ou{text-align:center;color:var(--muted);margin:14px 0}
 #bv-nasc{height:46px;border:1.5px solid var(--line);background:var(--surface-2);padding:0 12px;font-size:16px;border-radius:2px;color-scheme:dark}
 .rede-l{font-size:14px;color:var(--muted);margin-top:4px}
 .redes input[type=text]{flex:none}
@@ -299,7 +305,7 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
 
   <section id="v-entrar" aria-label="Entrar" hidden>
     <h2 class="title">Entrar</h2>
-    <p class="lede">Entre para montar seu perfil e encontrar gente para jogar junto.</p>
+    <p class="lede">Entre ou crie sua conta para encontrar gente para jogar junto.</p>
     <div id="entrar-box"></div>
   </section>
 
@@ -469,7 +475,7 @@ var REDUCED=false;try{REDUCED=window.matchMedia('(prefers-reduced-motion: reduce
 function defaults(){return {profile:{instagram:'',tiktok:'',handle:'seu_nick',plats:['PC'],comp:30,music:true,sched:'Noite',goals:['amizade','casual','leve','profundo','competitivo'],games:['hades','stardew','ittakestwo','hollow']},ratings:{},likes:[],passes:[],matches:[]};}
 function mesclar(d){
   var base=defaults();for(var k in base){if(d[k]!==undefined)base[k]=d[k];}
-  var pr=d.profile||{};for(var j in base.profile){if(pr[j]!==undefined)base.profile[j]=pr[j];}
+  base.profile=Object.assign(defaults().profile,d.profile||{});
   if(!Array.isArray(base.profile.goals)||base.profile.goals.length!==GOAL_IDS.length)base.profile.goals=defaults().profile.goals;
   // Quem já tinha dado nota a um jogo fora dos favoritos não perde a nota: o jogo entra na lista.
   Object.keys(base.ratings).forEach(function(id){if(G[id]&&base.profile.games.indexOf(id)<0)base.profile.games.push(id);});
@@ -924,7 +930,8 @@ function redeMuda(input){
 /* ---------- conta ---------- */
 var AUTH='https://mlfxwdfuadcactwwbjyl.supabase.co/auth/v1',SITE_JJ='https://dmacwolf.github.io/joga-junto/';
 var K_SES='jogajunto-sessao',K_PKCE='jogajunto-pkce',K_COD='jogajunto-login-code',K_LERR='jogajunto-login-erro';
-var CONTA={google:false,existe:false,offline:false,erro:''},contaT=null;
+var CONTA={login:false,google:false,existe:false,offline:false,erro:''},contaT=null;
+var EN_MSG={invalid_credentials:'E-mail ou senha incorretos.',user_already_exists:'Esse e-mail já tem conta. Entre com sua senha.',email_exists:'Esse e-mail já tem conta. Entre com sua senha.',weak_password:'Essa senha é fraca. Use pelo menos 8 caracteres.',email_not_confirmed:'Confirme seu e-mail antes de entrar.',validation_failed:'Confira o e-mail digitado.',email_address_invalid:'Confira o e-mail digitado.',over_request_rate_limit:'Muitas tentativas. Espere um pouco e tente de novo.',over_email_send_rate_limit:'Muitas tentativas. Espere um pouco e tente de novo.'};
 function sesGet(){try{return JSON.parse(pedGet(K_SES)||'null');}catch(e){return null;}}
 function sesSet(s){pedSet(K_SES,s?JSON.stringify(s):'');}
 function sesDe(r){return {access_token:r.access_token,refresh_token:r.refresh_token,expires_at:r.expires_at||Math.floor(Date.now()/1000)+(r.expires_in||3600)};}
@@ -965,7 +972,7 @@ function contaAgenda(){
   contaT=setTimeout(function(){contaCall('jj_conta_salvar',{estado:contaEstado()}).catch(function(){});},1500);
 }
 function contaGate(){
-  if(!CONTA.google)return '';
+  if(!CONTA.login)return '';
   if(!sesGet())return 'entrar';
   if(CONTA.offline)return '';
   return CONTA.existe?'':'bemvindo';
@@ -980,9 +987,44 @@ function loginGoogle(){
   });
 }
 function renderEntrar(){
+  var criar=ui.modoEntrar==='criar',em=$('#en-email'),valor=em?em.value:'';
+  $('#entrar-box').innerHTML='<form id="entrar-form" class="group entrar" novalidate>'
+    +'<label class="lbl" for="en-email">E-mail</label><input id="en-email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" value="'+esc(valor)+'">'
+    +'<label class="lbl" for="en-senha">Senha</label><input id="en-senha" type="password" autocomplete="'+(criar?'new-password':'current-password')+'">'
+    +(criar?'<label class="lbl" for="en-senha2">Repita a senha</label><input id="en-senha2" type="password" autocomplete="new-password">':'')
+    +'<p class="ped-erro" id="en-erro"'+(CONTA.erro?'':' hidden')+'>'+esc(CONTA.erro)+'</p>'
+    +'<button class="btn-like" type="submit" id="en-enviar">'+(criar?'Criar conta':'Entrar')+'</button></form>'
+    +'<button class="game-rm" type="button" id="en-modo">'+(criar?'Já tenho conta':'Criar conta nova')+'</button>'
+    +(CONTA.google&&botaoGoogle()?'<p class="entrar-ou">ou</p>'+botaoGoogle():'');
+}
+function entrarEnvia(){
+  var email=$('#en-email').value.trim(),senha=$('#en-senha').value,criar=ui.modoEntrar==='criar',btn=$('#en-enviar'),msg='';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))msg='Confira o e-mail digitado.';
+  else if(senha.length<8)msg='A senha precisa ter pelo menos 8 caracteres.';
+  else if(criar&&senha!==$('#en-senha2').value)msg='As senhas não são iguais.';
+  pedErro('#en-erro',msg);
+  if(msg)return;
+  btn.disabled=true;
+  authPost(criar?'/signup':'/token?grant_type=password',{email:email,password:senha}).then(function(r){
+    if(!r.access_token){
+      btn.disabled=false;
+      pedErro('#en-erro','Enviamos um e-mail para confirmar sua conta. Confirme e depois entre.');
+      return;
+    }
+    sesSet(sesDe(r));CONTA.erro='';CONTA.offline=false;
+    return contaCall('jj_conta_ler',{}).then(function(e){
+      CONTA.existe=e!==null;
+      if(e)contaAplica(e);
+      route();
+    },function(){CONTA.offline=true;route();});
+  }).catch(function(e){
+    btn.disabled=false;
+    pedErro('#en-erro',e instanceof TypeError?'Sem conexão. Tente de novo.':(EN_MSG[e.message]||'Não consegui entrar. Tente de novo.'));
+  });
+}
+function botaoGoogle(){
   var apkSemLogin=ST_APK_ANTIGO||(ST_NO_APK&&!/JogaJuntoApp\/2/.test(navigator.userAgent));
-  $('#entrar-box').innerHTML=(CONTA.erro?'<p class="ped-erro">'+esc(CONTA.erro)+'</p>':'')
-    +(apkSemLogin?'<p class="hintp">Para entrar, instale a versão nova do app.</p><a class="btn-like sm steam-btn" href="'+ST_APK+'">Baixar versão nova</a>'
+  return (apkSemLogin?''
       :'<button class="google-btn" type="button" id="google-btn"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.5 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 7l7.2 5.6c4.2-3.9 7.1-9.6 7.1-17.1z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.2C1 16.4 0 20.1 0 24s1 7.6 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.6 2.2-8.7 2.2-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>Entrar com Google</button>');
 }
 function bvJogos(){
@@ -1045,8 +1087,10 @@ function contaInicio(){
   };
   var limite=setTimeout(fim,4000),tinhaCodigo=false;
   fetch(AUTH+'/settings',{headers:{apikey:PED.key}}).then(function(r){return r.json();}).then(function(c){
+    // A entrada só vale com um jeito real de entrar: Google ligado, ou e-mail sem depender de mensagem de confirmação.
     CONTA.google=!!(c.external&&c.external.google);
-    if(!CONTA.google)return;
+    CONTA.login=CONTA.google||!!(c.external&&c.external.email&&c.mailer_autoconfirm);
+    if(!CONTA.login)return;
     var code=pedGet(K_COD);
     if(pedGet(K_LERR)){CONTA.erro='Não consegui entrar com o Google. Tente de novo.';pedSet(K_LERR,'');}
     if(code){
@@ -1054,7 +1098,7 @@ function contaInicio(){
       return authPost('/token?grant_type=pkce',{auth_code:code,code_verifier:pedGet(K_PKCE)}).then(function(r){sesSet(sesDe(r));pedSet(K_PKCE,'');});
     }
   }).then(function(){
-    if(!CONTA.google||!sesGet())return;
+    if(!CONTA.login||!sesGet())return;
     return contaCall('jj_conta_ler',{}).then(function(e){
       CONTA.existe=e!==null;
       if(e)contaAplica(e);
@@ -1320,6 +1364,7 @@ document.addEventListener('click',function(e){
   if(t.id==='undo-btn'){desfazer();return;}
   if(t.id==='reset-ask'){ui.confirmReset=true;renderProfile();return;}
   if(t.id==='reset-no'){ui.confirmReset=false;renderProfile();return;}
+  if(t.id==='en-modo'){ui.modoEntrar=ui.modoEntrar==='criar'?'entrar':'criar';CONTA.erro='';renderEntrar();return;}
   if(t.id==='google-btn'){loginGoogle();return;}
   if(t.id==='bv-fim'){bvConcluir(t);return;}
   if(t.id==='conta-sair'){contaCall('jj_conta_salvar',{estado:contaEstado()}).catch(function(){}).then(contaLimpa);return;}
@@ -1340,6 +1385,7 @@ document.addEventListener('input',function(e){
 });
 document.addEventListener('submit',function(e){
   if(e.target.id==='q-form'){e.preventDefault();var ids=searchGames($('#q').value);if(ids.length)pickGame(ids[0]);return;}
+  if(e.target.id==='entrar-form'){e.preventDefault();entrarEnvia();return;}
   if(e.target.id==='jg-form'){e.preventDefault();var novos=searchGames($('#jg-q').value).filter(function(id){return S.profile.games.indexOf(id)<0;});if(novos.length)adicionar(novos[0]);return;}
   if(e.target.id==='msg-form'){e.preventDefault();sendMsg($('#msg-in').value);var n=$('#msg-in');if(n)n.focus();}
 });
