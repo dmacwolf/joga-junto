@@ -153,6 +153,9 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 body.carregando .app,body.carregando .tabs,body.sem-abas .tabs{visibility:hidden}
 .google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:52px;background:#fff;color:#1f1f1f;border:0;border-radius:4px;font-weight:600;font-size:16px;text-decoration:none}
 #bv-nasc{height:46px;border:1.5px solid var(--line);background:var(--surface-2);padding:0 12px;font-size:16px;border-radius:2px;color-scheme:dark}
+.rede-l{font-size:14px;color:var(--muted);margin-top:4px}
+.redes input[type=text]{flex:none}
+.rede-a{align-self:flex-start;color:var(--cyan);min-height:32px;display:inline-flex;align-items:center}
 .steam-btn{display:flex;align-items:center;justify-content:center;align-self:flex-start;text-decoration:none}
 .steam-top{display:flex;align-items:center;gap:12px}
 .steam-top img{width:48px;height:48px;border-radius:4px}
@@ -459,7 +462,7 @@ var P={};PLAYERS.forEach(function(p){P[p.id]=p;});
 var KEY='player2-v2';
 var REDUCED=false;try{REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
 
-function defaults(){return {profile:{handle:'seu_nick',plats:['PC'],comp:30,music:true,sched:'Noite',goals:['amizade','casual','leve','profundo','competitivo'],games:['hades','stardew','ittakestwo','hollow']},ratings:{},likes:[],passes:[],matches:[]};}
+function defaults(){return {profile:{instagram:'',tiktok:'',handle:'seu_nick',plats:['PC'],comp:30,music:true,sched:'Noite',goals:['amizade','casual','leve','profundo','competitivo'],games:['hades','stardew','ittakestwo','hollow']},ratings:{},likes:[],passes:[],matches:[]};}
 function mesclar(d){
   var base=defaults();for(var k in base){if(d[k]!==undefined)base[k]=d[k];}
   var pr=d.profile||{};for(var j in base.profile){if(pr[j]!==undefined)base.profile[j]=pr[j];}
@@ -880,6 +883,7 @@ function renderProfile(){
   var alvoPerfil=ui.bv?$('#bv-perfil'):$('#profile-box');
   alvoPerfil.innerHTML=
     '<div class="group"><label class="lbl" for="handle">Seu nick</label><input id="handle" type="text" maxlength="20" autocomplete="off" value="'+esc(pr.handle)+'"></div>'
+   +'<div class="group redes"><div class="lbl">Redes sociais</div><p class="hintp">Coloque só o seu @. Ele vira um link para o seu perfil.</p>'+REDES.map(function(r){return '<label class="rede-l" for="rede-'+r.id+'">'+r.n+'</label><input id="rede-'+r.id+'" type="text" data-rede="'+r.id+'" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@seu_usuario" value="'+esc(pr[r.id]?'@'+pr[r.id]:'')+'"><a class="rede-a mono" id="link-'+r.id+'" target="_blank" rel="noopener"'+(pr[r.id]?' href="'+esc(r.url(pr[r.id]))+'"':' hidden')+'>'+(pr[r.id]?'Abrir @'+esc(pr[r.id]):'')+'</a>';}).join('')+'</div>'
    +'<div class="group" id="conta-box"></div>'
    +'<div class="group" id="steam-box"></div>'
    +'<div class="group"><div class="lblrow"><label class="lbl" for="comp">Jeito de jogar</label><span class="mono" id="comp-label">'+modeLabel(pr.comp)+'</span></div>'
@@ -893,9 +897,24 @@ function renderProfile(){
    +'<div class="group danger">'+(ui.confirmReset
       ?'<p class="hintp">'+(sesGet()?'Isso apaga sua conta e tudo o que está nela.':'Isso apaga perfil, notas, curtidas e conversas deste navegador.')+' Não dá para desfazer.</p><div class="actions" style="margin:0"><button class="btn-like sm" type="button" id="reset-yes">Apagar tudo</button><button class="btn-pass sm" type="button" id="reset-no">Cancelar</button></div>'
       :'<button class="btn-pass sm" type="button" id="reset-ask" style="align-self:flex-start">Apagar meus dados</button>')+'</div>';
-  if(ui.bv){['.danger','#steam-box','#conta-box'].forEach(function(s){var n=$(s,alvoPerfil);if(n)n.remove();});return;}
+  if(ui.bv){['.danger','#steam-box','#conta-box','.redes'].forEach(function(s){var n=$(s,alvoPerfil);if(n)n.remove();});return;}
   renderContaBox();
   renderSteam();
+}
+
+/* ---------- redes sociais ---------- */
+var REDES=[
+ {id:'instagram',n:'Instagram',url:function(u){return 'https://www.instagram.com/'+encodeURIComponent(u)+'/';}},
+ {id:'tiktok',n:'TikTok',url:function(u){return 'https://www.tiktok.com/@'+encodeURIComponent(u);}}
+];
+function redeLimpa(v){
+  return String(v).trim().replace(/^https?:\/\/(www\.|m\.|vm\.)?(instagram\.com|tiktok\.com)\//i,'').replace(/^@/,'').split(/[\/?#]/)[0].replace(/^@/,'').replace(/[^\w.]/g,'').slice(0,30);
+}
+function redeMuda(input){
+  var id=input.dataset.rede,r=REDES.filter(function(x){return x.id===id;})[0],u=redeLimpa(input.value),a=$('#link-'+id);
+  S.profile[id]=u;save();
+  a.hidden=!u;
+  if(u){a.href=r.url(u);a.textContent='Abrir @'+u;}else{a.removeAttribute('href');a.textContent='';}
 }
 
 /* ---------- conta ---------- */
@@ -1304,6 +1323,7 @@ document.addEventListener('input',function(e){
   if(t.id==='q'){suggest(t.value);return;}
   if(t.id==='jg-q'){jgSugestoes(t.value);return;}
   if(t.id==='bv-q'){bvSugestoes(t.value);return;}
+  if(t.dataset&&t.dataset.rede){redeMuda(t);return;}
   if(t.id==='handle'){var v=t.value.replace(/[^\w.]/g,'').slice(0,20);if(v!==t.value)t.value=v;S.profile.handle=v||'seu_nick';save();return;}
   if(t.id==='comp'){S.profile.comp=parseInt(t.value,10)||0;$('#comp-label').textContent=modeLabel(S.profile.comp);save();}
 });

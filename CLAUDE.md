@@ -74,6 +74,11 @@ Usa Supabase Auth com PKCE, sem biblioteca; estado da pessoa em `private.contas`
 vale quando o provedor Google está ligado no Supabase (`/auth/v1/settings`). No APK, o login abre no navegador, porque o
 Google bloqueia WebView, e volta por `web/login-volta.html` e `jogajunto://login`. Vem antes de amigos e posts.
 
+## Instagram e TikTok (decidido em 08/11/2026)
+
+Sem conexão real: a pessoa informa o @ no Perfil e ele vira link. O Instagram oficial atende só contas profissionais, e o
+TikTok exige aprovação do app para ir além do nome e da foto.
+
 ## Conexão com a Steam
 
 Login oficial por OpenID na função `supabase/functions/steam`, com dados em `private.steam_conexoes` (`banco/steam.sql`).
@@ -85,7 +90,6 @@ Publicar a função: `npx.cmd --yes supabase@3.0.0 functions deploy steam --remo
 
 Combinar cada item com ele antes de fazer.
 - Adicionar amigos e fazer posts que os amigos veem.
-- Conectar Instagram e TikTok.
 - Conexão real com PSN e Xbox pelo menos (Steam já feita). A da PSN não tem caminho oficial: decidir com ele.
 - Catálogo grande de jogos pela Wikidata, se for a melhor opção. Todos os jogos, com marca de multiplayer, não só multiplayer.
 - A pessoa monta o próprio perfil. Quem marca "curto música" pode conectar Spotify, Deezer ou YouTube Music.
