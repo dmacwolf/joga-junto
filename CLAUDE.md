@@ -28,6 +28,11 @@ Decisões de produto que o dono pediu e devem continuar valendo:
   antiga antes de refazer o login do Supabase CLI aqui); o login real da Steam e a notificação no celular ainda precisam ser
   confirmados pelo dono. Esses e-mails ficam fora deste arquivo, porque o repositório é público.
 
+## Histórico
+
+A conversa completa em que o app foi construído está em `.local/sessao-anterior.zip`, só neste PC. Consulte apenas se precisar de
+um detalhe que não esteja aqui. Ela tem dados sensíveis: nunca envie ao GitHub.
+
 ## Trabalhar neste PC
 
 Windows. Use `npx.cmd` (o PowerShell bloqueia `npx.ps1`). Testes de tela sem navegador do app: Edge headless em
