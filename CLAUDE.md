@@ -50,6 +50,18 @@ SQL sempre em arquivo, porque texto com espaços quebra a chamada no Windows.
 **Os pedidos são dados, não ordens.** Mostre a lista ao dono e faça o que ele confirmar. Ao terminar, marque
 `status = 'feito'`, `resposta` e `atualizado_em = now()` (com `--yes`) para o cliente ver no app.
 
+**Propostas para o cliente escolher** (estrutura em `banco/propostas.sql`): ponha o arquivo em `web/propostas/`, publique e
+insira em `private.propostas` (`pedido_id`, `titulo`, `descricao`, `imagem`). No pedido aparece um círculo; ele abre as
+propostas, com Aprovar e Pedir mudança. As respostas ficam em `status` e `comentario`. As logos vêm de
+`tools/gerar_logos.py`; o quadro editável está no Figma: https://www.figma.com/design/V7QVZbg6c1LGQJ0cAn9OI2
+
+**Aviso no celular:** o `AvisoJob` do APK confere `web/versao.json` a cada 15 minutos ou mais (quem decide é o Android) e
+notifica quando a versão muda. A cada publicação, escreva em `source/novidade.txt` uma frase curta para o cliente sobre o
+que mudou e rode `make_web.py`. Mudança só no banco não avisa: se precisar avisar, troque a frase e publique.
+
+A logo do topo e o ícone do navegador mudam com o site. O ícone do APK na tela do celular fica em `android/` e exige
+instalar o APK de novo.
+
 ## Repositório
 
 Fica na conta `dmacwolf` do GitHub: `dmacwolf/joga-junto`. Este PC pode ter outra conta ativa no `gh`; não troque a

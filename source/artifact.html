@@ -131,6 +131,32 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 .ped-item.feito .ped-st{color:var(--magenta)}
 .ped-txt{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .ped-resp{margin:8px 0 0;font-size:14px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.ped-circ{display:inline-flex;align-items:center;gap:10px;min-height:44px;margin-top:8px;color:var(--ink);text-decoration:none}
+.ped-bola{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--magenta);color:var(--accent-ink);font-family:var(--font-display);font-weight:700;font-size:15px;animation:ped-pulso 1.6s infinite}
+.ped-bola.calma{animation:none}
+.ped-bola.ok{background:var(--cyan);color:var(--cyan-ink);animation:none}
+@keyframes ped-pulso{0%{box-shadow:0 0 0 0 rgba(255,47,125,.6)}100%{box-shadow:0 0 0 12px rgba(255,47,125,0)}}
+@media (prefers-reduced-motion:reduce){.ped-bola{animation:none}}
+.ped-back{display:inline-flex;align-items:center;min-height:44px;color:var(--cyan);text-decoration:none}
+.ped-card{display:flex;gap:12px;align-items:center;background:var(--surface-2);border-left:3px solid var(--cyan);padding:10px;margin:0 0 10px;color:inherit;text-decoration:none}
+.ped-thumb{flex:none;width:92px;height:92px;background:var(--bg);display:grid;place-items:center}
+.ped-thumb img{width:84px;height:84px}
+.ped-cardt{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:14px;color:var(--muted)}
+.ped-cardt b{font-family:var(--font-display);font-size:16px;color:var(--ink)}
+.ped-chip{align-self:flex-start;font-family:var(--font-mono);font-size:11px;padding:2px 8px;background:var(--surface);color:var(--cyan)}
+.ped-chip.aprovada{background:var(--cyan);color:var(--cyan-ink)}
+.ped-chip.mudanca{color:var(--magenta)}
+.ped-chip.nao_escolhida{color:var(--muted)}
+.ped-grande{background:var(--surface-2);display:grid;place-items:center;padding:16px}
+.ped-grande img{width:min(250px,68vw);height:auto}
+.ped-mini{display:flex;align-items:center;gap:14px;margin:10px 0 0;color:var(--muted)}
+.ped-desc{margin:12px 0 8px;font-size:14.5px;color:var(--muted)}
+.ped-acoes{display:flex;gap:12px;margin-top:14px}
+.ped-acoes .btn-like,.ped-acoes .btn-pass{flex:1;height:50px;font-size:13px;padding:0 8px}
+#ped-nota{min-height:110px;margin-top:8px}
+#ped-prop .lbl{display:block;margin-top:14px}
+#ped-prop .hintp{margin-top:12px}
+#ped-prop .ped-erro{margin-top:10px}
 
 .empty{border:2px dashed var(--line);padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(16,19,43,.6)}
 .empty h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
@@ -287,6 +313,7 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
   </section>
 
   <section id="v-pedidos" aria-label="Pedir mudanças no app" hidden>
+    <div id="ped-main">
     <h2 class="title">Pedir mudanças</h2>
     <p class="lede">Escreva tudo o que quer mudar no app. Quando a mudança ficar pronta, ela aparece aqui como feita e o app já se atualiza sozinho.</p>
     <form id="ped-code-form" class="group" autocomplete="off" hidden>
@@ -302,6 +329,8 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
       <button class="btn-like sm ped-send" id="ped-enviar" type="submit">Enviar pedido</button>
     </form>
     <div id="ped-lista"></div>
+    </div>
+    <div id="ped-prop" hidden></div>
   </section>
 </div>
 
@@ -785,13 +814,72 @@ function pedSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.remove
 function pedCall(fn,body){return fetch(PED.url+fn,{method:'POST',headers:{'apikey':PED.key,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.message||'erro');return d;});});}
 function pedErro(id,msg){var e=$(id);e.textContent=msg||'';e.hidden=!msg;}
 function pedSair(msg){pedSet(PED.kCod,'');renderPedidos();pedErro('#ped-code-erro',msg);}
+var PEDV={lista:[],ped:0,prop:0,modo:''};
+var PED_PROP={aberta:'Aguardando você',aprovada:'Aprovada',mudanca:'Mudança pedida',nao_escolhida:'Não escolhida'};
+function pedChip(s){return '<span class="ped-chip '+esc(s)+'">'+esc(PED_PROP[s]||s)+'</span>';}
+function pedCirculo(id,props){
+  var l=props.filter(function(x){return x.pedido_id===id;});
+  if(!l.length)return '';
+  var ok=l.some(function(x){return x.status==='aprovada';}),novas=l.some(function(x){return x.status==='aberta';});
+  var txt=ok?'Proposta aprovada':(l.length===1?'1 proposta para ver':l.length+' propostas para ver');
+  return '<a class="ped-circ" href="#pedidos/'+id+'"><span class="ped-bola'+(ok?' ok':(novas?'':' calma'))+'" aria-hidden="true">'+(ok?'✓':l.length)+'</span><span class="mono">'+esc(txt)+'</span></a>';
+}
+function pedDesenha(){
+  var box=$('#ped-prop'),ped=PEDV.ped;
+  var l=PEDV.lista.filter(function(x){return x.pedido_id===ped;});
+  var p=PEDV.prop?l.filter(function(x){return x.id===PEDV.prop;})[0]:null;
+  if(!l.length){box.innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><p class="hintp">Nenhuma proposta neste pedido.</p>';return;}
+  if(!p){
+    box.innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><h2 class="title">Propostas</h2><p class="lede">Toque em uma proposta para ver de perto e responder.</p>'
+      +l.map(function(x){
+        return '<a class="ped-card" href="#pedidos/'+ped+'/'+x.id+'"><span class="ped-thumb"><img src="'+esc(x.imagem)+'" alt=""></span><span class="ped-cardt"><b>'+esc(x.titulo)+'</b>'+pedChip(x.status)+'</span></a>';
+      }).join('');
+    return;
+  }
+  var fechada=l.some(function(x){return x.status==='aprovada';}),acoes='';
+  if(!fechada){
+    if(PEDV.modo==='aprovar'){
+      acoes='<p class="hintp">Aprovar esta proposta? As outras deste pedido deixam de valer.</p><div class="ped-acoes"><button class="btn-like" type="button" data-px="confirma">Sim, aprovar</button><button class="btn-pass" type="button" data-px="cancela">Cancelar</button></div>';
+    }else if(PEDV.modo==='mudar'){
+      acoes='<label class="lbl" for="ped-nota">O que você quer mudar?</label><textarea id="ped-nota" class="ped-ta" maxlength="2000"></textarea><div class="ped-acoes"><button class="btn-like" type="button" data-px="enviar">Enviar</button><button class="btn-pass" type="button" data-px="cancela">Cancelar</button></div>';
+    }else{
+      acoes='<div class="ped-acoes"><button class="btn-like" type="button" data-px="aprovar">Aprovar</button><button class="btn-pass" type="button" data-px="mudar">Pedir mudança</button></div>';
+    }
+  }
+  var img=esc(p.imagem);
+  box.innerHTML='<a class="ped-back mono" href="#pedidos/'+ped+'">‹ Todas as propostas</a><h2 class="title">'+esc(p.titulo)+'</h2>'
+    +'<div class="ped-grande"><img src="'+img+'" alt="Proposta: '+esc(p.titulo)+'"></div>'
+    +'<div class="ped-mini"><img src="'+img+'" width="56" height="56" alt=""><img src="'+img+'" width="36" height="36" alt=""><img src="'+img+'" width="24" height="24" alt=""><span class="mono">em tamanho de ícone</span></div>'
+    +(p.descricao?'<p class="ped-desc">'+esc(p.descricao)+'</p>':'')
+    +pedChip(p.status)
+    +(p.comentario?'<p class="ped-resp">Você pediu: '+esc(p.comentario)+'</p>':'')
+    +acoes+'<p class="ped-erro" id="ped-prop-erro" hidden></p>';
+}
+function pedBusca(){return pedCall('jj_propostas',{codigo:pedGet(PED.kCod)}).then(function(l){PEDV.lista=l;pedDesenha();});}
+function pedFalha(e){
+  if(e.message==='codigo_invalido'){location.hash='#pedidos';pedSair('Esse código não vale mais. Peça o novo.');return;}
+  $('#ped-prop').innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><p class="hintp">Não consegui falar com o servidor. Tente de novo em instantes.</p>';
+}
+function pedResponde(btn,acao,nota){
+  btn.disabled=true;pedErro('#ped-prop-erro','');
+  pedCall('jj_responder_proposta',{codigo:pedGet(PED.kCod),proposta:PEDV.prop,acao:acao,nota:nota}).then(function(){
+    PEDV.modo='';toast(acao==='aprovar'?'Proposta aprovada':'Pedido de mudança enviado');
+    return pedBusca().catch(function(){});
+  }).catch(function(err){
+    btn.disabled=false;
+    if(err.message==='codigo_invalido'){pedFalha(err);return;}
+    if(err.message==='ja_aprovada'){pedErro('#ped-prop-erro','Outra proposta já foi aprovada.');return;}
+    pedErro('#ped-prop-erro','Não consegui enviar. Tente de novo em instantes.');
+  });
+}
 function pedLista(){
   var box=$('#ped-lista'),cod=pedGet(PED.kCod);
   if(!cod){box.innerHTML='';return;}
-  pedCall('jj_pedidos',{codigo:cod}).then(function(l){
+  Promise.all([pedCall('jj_pedidos',{codigo:cod}),pedCall('jj_propostas',{codigo:cod})]).then(function(r){
+    var l=r[0],props=r[1];
     box.innerHTML=l.length?'<div class="group"><div class="lbl">Seus pedidos</div></div>'+l.map(function(p){
       var d=new Date(p.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-      return '<div class="ped-item'+(p.status==='feito'?' feito':'')+'"><p class="ped-top mono"><span class="ped-st">'+esc(PED_ST[p.status]||p.status)+'</span><span>'+esc(d)+'</span></p><p class="ped-txt">'+esc(p.texto)+'</p>'+(p.resposta?'<p class="ped-resp">'+esc(p.resposta)+'</p>':'')+'</div>';
+      return '<div class="ped-item'+(p.status==='feito'?' feito':'')+'"><p class="ped-top mono"><span class="ped-st">'+esc(PED_ST[p.status]||p.status)+'</span><span>'+esc(d)+'</span></p><p class="ped-txt">'+esc(p.texto)+'</p>'+(p.resposta?'<p class="ped-resp">'+esc(p.resposta)+'</p>':'')+pedCirculo(p.id,props)+'</div>';
     }).join(''):'';
   }).catch(function(e){
     if(e.message==='codigo_invalido'){pedSair('Esse código não vale mais. Peça o novo.');return;}
@@ -799,13 +887,32 @@ function pedLista(){
   });
 }
 function renderPedidos(){
-  var tem=!!pedGet(PED.kCod);
+  var tem=!!pedGet(PED.kCod),h=location.hash.slice(1).split('/'),ped=tem?(+h[1]||0):0;
+  $('#ped-main').hidden=!!ped;$('#ped-prop').hidden=!ped;
+  if(ped){
+    PEDV.ped=ped;PEDV.prop=+h[2]||0;PEDV.modo='';
+    if(PEDV.lista.length)pedDesenha();
+    pedBusca().catch(pedFalha);
+    return;
+  }
   $('#ped-code-form').hidden=tem;$('#ped-form').hidden=!tem;
   pedErro('#ped-code-erro','');pedErro('#ped-erro','');
   if(tem){var ta=$('#ped-texto');if(!ta.value)ta.value=pedGet(PED.kRas);}
   pedLista();
 }
 $('#ped-texto').addEventListener('input',function(){pedSet(PED.kRas,this.value);});
+$('#ped-prop').addEventListener('click',function(e){
+  var b=e.target.closest('[data-px]');if(!b)return;
+  var a=b.dataset.px;
+  if(a==='aprovar'||a==='mudar'){PEDV.modo=a;pedDesenha();return;}
+  if(a==='cancela'){PEDV.modo='';pedDesenha();return;}
+  if(a==='confirma'){pedResponde(b,'aprovar','');return;}
+  if(a==='enviar'){
+    var n=$('#ped-nota').value.trim();
+    if(!n){pedErro('#ped-prop-erro','Escreva o que você quer mudar.');return;}
+    pedResponde(b,'mudar',n);
+  }
+});
 $('#ped-code-form').addEventListener('submit',function(e){
   e.preventDefault();
   var c=$('#ped-code').value.trim().toUpperCase();
@@ -833,7 +940,7 @@ $('#ped-form').addEventListener('submit',function(e){
 function renderBadge(){var b=$('#badge'),n=S.matches.length;b.textContent=n;b.hidden=!n;renderLevel();}
 var VIEWS=['descobrir','matches','buscar','jogos','perfil','pedidos'];
 function route(){
-  var h=location.hash.slice(1),v=VIEWS.indexOf(h)>=0?h:'descobrir';
+  var h=location.hash.slice(1).split('/')[0],v=VIEWS.indexOf(h)>=0?h:'descobrir';
   VIEWS.forEach(function(n){$('#v-'+n).hidden=n!==v;});
   document.querySelectorAll('.tab').forEach(function(a){var on=a.dataset.v===v||(v==='pedidos'&&a.dataset.v==='perfil');a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   if(v==='descobrir')renderDeck();

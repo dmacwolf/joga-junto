@@ -4,6 +4,7 @@
 Uso: python3 tools/make_web.py
 """
 import hashlib
+import json
 import pathlib
 import re
 import sys
@@ -56,10 +57,16 @@ document.addEventListener('visibilitychange',checa);
 setInterval(checa,300000);
 })();</script>"""
 
-versao = hashlib.sha256((head + body).encode('utf-8')).hexdigest()[:12]
+# A frase de source/novidade.txt é o que o aviso no celular mostra. Trocar a frase também conta como versão nova.
+arquivo_novidade = root / 'source' / 'novidade.txt'
+novidade = arquivo_novidade.read_text(encoding='utf-8').strip() if arquivo_novidade.exists() else ''
+novidade = novidade or 'O Joga Junto foi atualizado.'
+
+versao = hashlib.sha256((head + body + novidade).encode('utf-8')).hexdigest()[:12]
 head_base += '<meta name="jj-versao" content="' + versao + '">\n'
 
 html = head_base + head + '</head>\n<body>\n' + body.rstrip() + '\n' + sw + '\n' + atualizar + '\n</body>\n</html>\n'
 (root / 'web').mkdir(exist_ok=True)
 (root / 'web' / 'index.html').write_text(html, encoding='utf-8')
+(root / 'web' / 'versao.json').write_text(json.dumps({'versao': versao, 'mensagem': novidade}, ensure_ascii=False) + '\n', encoding='utf-8')
 print('web/index.html gerado (%d bytes)' % len(html))
