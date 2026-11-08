@@ -71,7 +71,7 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 
 /* deck */
 .hint{display:flex;justify-content:space-between;gap:8px;margin:10px 0;color:var(--muted);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
-.deck{position:relative;height:clamp(480px,calc(100dvh - 290px),650px);filter:drop-shadow(0 0 16px rgba(34,230,255,.24)) drop-shadow(0 0 38px rgba(138,92,255,.2))}
+.deck{position:relative;height:clamp(480px,calc(100dvh - 314px),650px);filter:drop-shadow(0 0 16px rgba(34,230,255,.24)) drop-shadow(0 0 38px rgba(138,92,255,.2))}
 .card{position:absolute;inset:0;padding:2px;background:var(--edge);clip-path:var(--cut);display:flex;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
 .card.behind{transform:scale(.95) translateY(14px);opacity:.7;pointer-events:none}
 .card-in{position:relative;flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;clip-path:var(--cut-in);background:linear-gradient(180deg,#171A42,var(--surface) 38%)}
@@ -125,6 +125,7 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 .keys{margin:12px 0 0;text-align:center;color:var(--muted)}
 @media (hover:none){.keys{display:none}}
 .note{margin:18px 0 0;font-size:13.5px;color:var(--muted)}
+@media (max-height:793px){.deck-note{margin-top:92px}}
 
 .empty{border:2px dashed var(--line);padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(16,19,43,.6)}
 .empty h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
@@ -203,7 +204,7 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
 .tab .count{position:absolute;top:8px;right:3px;min-width:16px;height:16px;padding:0 3px;font-size:10px}
 
 /* tabs */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(8,9,19,.94);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(34,230,255,.07);
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgb(8,9,19);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(34,230,255,.07);
   padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabs-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 .tab{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:var(--tabh);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;min-width:0;text-transform:uppercase;color:var(--muted);text-decoration:none}
@@ -248,7 +249,7 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
       <button class="btn-like" id="btn-like" type="button">Bora jogar</button>
     </div>
     <p class="keys mono">← passar · → bora jogar</p>
-    <p class="note">Os jogadores aqui são exemplos. Seus matches, conversas e notas ficam salvos só neste navegador. Curtir, avaliar e dar match sobe seu nível.</p>
+    <p class="note deck-note">Os jogadores aqui são exemplos. Seus matches, conversas e notas ficam salvos só neste navegador. Curtir, avaliar e dar match sobe seu nível.</p>
   </section>
 
   <section id="v-matches" aria-label="Matches" hidden>
