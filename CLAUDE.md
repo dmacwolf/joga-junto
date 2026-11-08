@@ -19,11 +19,21 @@ Decisões de produto que o dono pediu e devem continuar valendo:
 
 ## Estado real, sem enfeite
 
-- Os 12 jogadores e as respostas das conversas são **dados de exemplo e simulados**. Não há contas, servidor nem
-  banco. Perfil, notas, curtidas e matches ficam no `localStorage` do navegador (chave `player2-v2`, mantida de
-  propósito para não apagar dados já salvos).
-- Para ter pessoas reais se encontrando, o próximo passo grande é um backend compartilhado (contas, perfis, matches,
-  mensagens). Ainda não foi decidido qual (Supabase foi cogitado).
+- Os 12 jogadores e as respostas das conversas continuam sendo **dados de exemplo e simulados**. Já existem contas reais
+  (e-mail e senha), mas as pessoas ainda não se encontram entre si: não há tela de outros usuários, amigos nem mensagens reais.
+- O estado de cada pessoa fica no `localStorage` (chave `player2-v2`) e é copiado para `private.contas` quando ela está logada.
+- Publicado em 08/11/2026: site em https://dmacwolf.github.io/joga-junto/ e APK 1.8 em Releases.
+- Pendente: recuperar senha e verificar e-mail (precisam de SMTP, fazer antes de divulgar); trocar a chave da Steam para a
+  conta do Daniel, se foi gerada em conta pessoal; passar o Supabase para a conta nova do Joga Junto como Owner (não remover a
+  antiga antes de refazer o login do Supabase CLI aqui); o login real da Steam e a notificação no celular ainda precisam ser
+  confirmados pelo dono. Esses e-mails ficam fora deste arquivo, porque o repositório é público.
+
+## Trabalhar neste PC
+
+Windows. Use `npx.cmd` (o PowerShell bloqueia `npx.ps1`). Testes de tela sem navegador do app: Edge headless em
+`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` com `--virtual-time-budget`, numa cópia temporária de
+`web/index.html` com `fetch` simulado (apague a cópia antes do commit). Não digite cadastro no site publicado para testar:
+teste contas direto na API, com e-mail temporário, e apague depois.
 
 ## Estrutura
 
@@ -71,9 +81,10 @@ instalar o APK de novo.
 
 Depois da tela da logo, login obrigatório com e-mail e senha (o Google é opcional e aparece se for ligado). 18 anos ou mais, e os dados do celular vão para a conta no primeiro login.
 A entrada só aparece se houver jeito real de entrar: Google ligado ou `Confirm email` desligado no Supabase, porque o envio padrão de e-mails do Supabase é muito limitado. Recuperar senha ainda não existe: precisa de um serviço de e-mail (SMTP).
-Usa Supabase Auth com PKCE, sem biblioteca; estado da pessoa em `private.contas` (`banco/contas.sql`). A tela de entrada só
-vale quando o provedor Google está ligado no Supabase (`/auth/v1/settings`). No APK, o login abre no navegador, porque o
-Google bloqueia WebView, e volta por `web/login-volta.html` e `jogajunto://login`. Vem antes de amigos e posts.
+Usa Supabase Auth sem biblioteca; estado da pessoa em `private.contas` (`banco/contas.sql`). `Confirm email` foi desligado em
+08/11/2026 com `supabase config push` e um `config.toml` só com essa opção, que não altera o que não declara.
+O botão do Google (PKCE) só aparece se o provedor for ligado. No APK, ele abre no navegador, porque o Google bloqueia WebView,
+e volta por `web/login-volta.html` e `jogajunto://login`. As contas vêm antes de amigos e posts.
 
 ## Erros do APK
 
@@ -99,7 +110,7 @@ Combinar cada item com ele antes de fazer.
 - Domínio próprio: `jogajuntoapp.com.br` (decidido, ainda sem registrar, não fazer agora). Migrar só depois do login com Google, para os dados do celular irem antes para a conta.
 - Conexão real com PSN e Xbox pelo menos (Steam já feita). A da PSN não tem caminho oficial: decidir com ele.
 - Catálogo grande de jogos pela Wikidata, se for a melhor opção. Todos os jogos, com marca de multiplayer, não só multiplayer.
-- A pessoa monta o próprio perfil. Quem marca "curto música" pode conectar Spotify, Deezer ou YouTube Music.
+- Quem marca "curto música" pode conectar Spotify, Deezer ou YouTube Music. (A montagem do próprio perfil já existe.)
 - Em cada jogo favorito, informar como joga (solo, co-op, competitivo, casual, quando o jogo tiver) e horas de jogo, que vêm da conexão.
 - Busca avançada: jogo mais modo (Dark Souls para competitivo, FIFA para co-op, Minecraft no criativo).
 - O Lv hoje é só um contador de atividade local: decidir se ganha sentido ou sai.
