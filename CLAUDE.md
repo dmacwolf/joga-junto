@@ -90,6 +90,7 @@ Publicar a função: `npx.cmd --yes supabase@3.0.0 functions deploy steam --remo
 
 Combinar cada item com ele antes de fazer.
 - Adicionar amigos e fazer posts que os amigos veem.
+- Domínio próprio: `jogajuntoapp.com.br` (decidido, ainda sem registrar, não fazer agora). Migrar só depois do login com Google, para os dados do celular irem antes para a conta.
 - Conexão real com PSN e Xbox pelo menos (Steam já feita). A da PSN não tem caminho oficial: decidir com ele.
 - Catálogo grande de jogos pela Wikidata, se for a melhor opção. Todos os jogos, com marca de multiplayer, não só multiplayer.
 - A pessoa monta o próprio perfil. Quem marca "curto música" pode conectar Spotify, Deezer ou YouTube Music.
