@@ -52,7 +52,7 @@ public class AvisoJob extends JobService {
         tarefa = new Thread(() -> {
             try {
                 verificar();
-            } catch (Exception ignorado) {
+            } catch (Throwable ignorado) {
                 // Sem internet ou resposta inválida: tenta de novo na próxima rodada.
             }
             jobFinished(parametros, false);

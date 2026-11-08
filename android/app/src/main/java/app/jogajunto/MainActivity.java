@@ -8,11 +8,15 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 
 /**
  * Casca fina: abre o site publicado do Joga Junto em tela cheia.
@@ -23,6 +27,8 @@ public class MainActivity extends Activity {
 
     private static final String OFFLINE_PAGE = "file:///android_asset/offline.html";
     private static final String RETRY_SCHEME = "p2retry";
+
+    private static int quedasDaPagina = 0;
 
     private WebView web;
 
@@ -68,6 +74,12 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detalhe) {
+                aoCairPagina(view, detalhe.didCrash());
+                return true;
+            }
+
+            @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 if (request.isForMainFrame()) {
                     view.loadUrl(OFFLINE_PAGE);
@@ -79,11 +91,37 @@ public class MainActivity extends Activity {
             web.loadUrl(BuildConfig.APP_URL);
         }
 
-        AvisoJob.agendar(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        try {
+            AvisoJob.agendar(this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                    && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        } catch (Throwable erro) {
+            // O aviso é um extra: se falhar, o app continua abrindo.
+            JogaJuntoApp.relatar("AVISO: " + Log.getStackTraceString(erro), false);
         }
+    }
+
+    /** Sem este tratamento, uma queda da parte que desenha a página derruba o app inteiro. */
+    private void aoCairPagina(WebView view, boolean foiErro) {
+        JogaJuntoApp.relatar("PAGINA CAIU: erro=" + foiErro + " quedas=" + quedasDaPagina, false);
+        android.view.ViewGroup pai = (android.view.ViewGroup) view.getParent();
+        if (pai != null) {
+            pai.removeView(view);
+        }
+        view.destroy();
+        web = null;
+        if (quedasDaPagina++ < 2) {
+            recreate();
+            return;
+        }
+        TextView aviso = new TextView(this);
+        aviso.setText("Não consegui abrir o Joga Junto. Feche e tente de novo.");
+        aviso.setTextColor(0xFFFFFFFF);
+        aviso.setGravity(Gravity.CENTER);
+        aviso.setBackgroundColor(0xFF080913);
+        setContentView(aviso);
     }
 
     @Override

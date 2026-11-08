@@ -74,6 +74,11 @@ Usa Supabase Auth com PKCE, sem biblioteca; estado da pessoa em `private.contas`
 vale quando o provedor Google está ligado no Supabase (`/auth/v1/settings`). No APK, o login abre no navegador, porque o
 Google bloqueia WebView, e volta por `web/login-volta.html` e `jogajunto://login`. Vem antes de amigos e posts.
 
+## Erros do APK
+
+Quando o app fecha, o `JogaJuntoApp` grava o motivo em `private.relatos_app` (`banco/relatos.sql`). Leia ali antes de chutar a
+causa. Neste PC há SDK em `%USERPROFILE%\android-build\sdk` (adb, aapt2). Entregue o APK ao dono como arquivo na conversa, não como caminho de pasta.
+
 ## Instagram e TikTok (decidido em 08/11/2026)
 
 Sem conexão real: a pessoa informa o @ no Perfil e ele vira link. O Instagram oficial atende só contas profissionais, e o
