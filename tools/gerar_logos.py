@@ -194,11 +194,43 @@ def controle_plano():
                f'<path fill="#080913" transform="translate(310.9 204) scale(.442)" d="{J}"/>')
 
 
-SAIDA.mkdir(exist_ok=True)
-for nome, funcao in (('logo-1', alavanca), ('logo-2', direcional), ('logo-3', controle),
-                     ('logo-4', eco), ('logo-5', emblema), ('logo-6', ligadura),
-                     ('anterior-giro', giro), ('anterior-alavanca-plana', alavanca_plana),
-                     ('anterior-direcional-plano', direcional_plano), ('anterior-controle-plano', controle_plano)):
-    texto = funcao()
-    (SAIDA / f'{nome}.svg').write_text(texto, encoding='utf-8', newline='\n')
-    print(nome, len(texto), 'bytes')
+# Segunda rodada, a partir do comentário do cliente na Eco: mais jovem e longe da estrutura do logo da Juventus
+# (J alto, traços retos e paralelos, pontas cortadas). Aqui tudo é baixo, largo e de ponta redonda.
+def sorriso():
+    fora = 'M366 118V250C366 336 300 392 222 392C170 392 130 366 112 322'
+    dentro = 'M238 118V220C238 262 212 286 180 286C160 286 146 278 136 262'
+    return svg('', '<g stroke-width="58" stroke-linecap="round" transform="rotate(-8 256 256)">'
+                   f'<path stroke="{M}" d="{fora}"/><path stroke="{C}" d="{dentro}"/></g>')
+
+
+def encostados():
+    frente = 'M346 150V318A78 78 0 0 1 268 396H232'
+    giro_f = 'rotate(10 340 260)'
+    defs = ('<mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">'
+            '<rect width="512" height="512" fill="#fff"/>'
+            f'<path stroke="#000" stroke-width="112" stroke-linecap="round" transform="{giro_f}" d="{frente}"/></mask>')
+    return svg(defs, '<g stroke-width="84" stroke-linecap="round">'
+                     f'<path stroke="{C}" mask="url(#m)" d="M206 118V292A78 78 0 0 1 128 370H116"/>'
+                     f'<path stroke="{M}" transform="{giro_f}" d="{frente}"/></g>')
+
+
+def ponto():
+    fora = ('M378 80C392 80 402 90 402 104C404 290 322 440 170 440C152 440 140 428 140 412'
+            'C140 396 152 384 170 384C262 380 352 284 354 104C354 90 364 80 378 80Z')
+    return svg('', f'<path fill="{M}" d="{fora}"/>'
+                   f'<path stroke="{C}" stroke-width="56" stroke-linecap="round" d="M270 110C270 200 250 276 196 300"/>'
+                   f'<circle cx="128" cy="312" r="34" fill="{C}"/>')
+
+
+NOVAS = (('nova-sorriso', sorriso), ('nova-encostados', encostados), ('nova-ponto', ponto))
+DESCARTADAS = (('logo-1', alavanca), ('logo-2', direcional), ('logo-3', controle),
+               ('logo-4', eco), ('logo-5', emblema), ('logo-6', ligadura),
+               ('anterior-giro', giro), ('anterior-alavanca-plana', alavanca_plana),
+               ('anterior-direcional-plano', direcional_plano), ('anterior-controle-plano', controle_plano))
+
+(SAIDA / 'descartadas').mkdir(parents=True, exist_ok=True)
+for pasta, lista in ((SAIDA, NOVAS), (SAIDA / 'descartadas', DESCARTADAS)):
+    for nome, funcao in lista:
+        texto = funcao()
+        (pasta / f'{nome}.svg').write_text(texto, encoding='utf-8', newline='\n')
+        print(pasta.name, nome, len(texto), 'bytes')

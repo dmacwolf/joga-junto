@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#080913">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20108%20108%22%3E%3Crect%20width%3D%22108%22%20height%3D%22108%22%20rx%3D%2222%22%20fill%3D%22%23080913%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M48%2C42V62Q48%2C76%2036%2C76%22%20stroke%3D%22%2322E6FF%22%2F%3E%3Cpath%20d%3D%22M72%2C42V62Q72%2C76%2060%2C76%22%20stroke%3D%22%23FF2F7D%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%2322E6FF%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%23FF2F7D%22%2F%3E%3C%2Fsvg%3E">
 <style>html{background:#080913;color-scheme:dark;-webkit-text-size-adjust:100%}[hidden]{display:none!important}img{max-width:100%}</style>
-<meta name="jj-versao" content="c8e670524bc5">
+<meta name="jj-versao" content="150228cd803e">
 <title>Joga Junto</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -154,7 +154,9 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 .ped-chip{align-self:flex-start;font-family:var(--font-mono);font-size:11px;padding:2px 8px;background:var(--surface);color:var(--cyan)}
 .ped-chip.aprovada{background:var(--cyan);color:var(--cyan-ink)}
 .ped-chip.mudanca{color:var(--magenta)}
-.ped-chip.nao_escolhida{color:var(--muted)}
+.ped-chip.nao_escolhida,.ped-chip.descartada{color:var(--muted)}
+.ped-pasta{border-left-color:var(--muted)}
+.ped-pasta .ped-thumb{color:var(--cyan)}
 .ped-grande{background:var(--surface-2);display:grid;place-items:center;padding:16px}
 .ped-grande img{width:min(250px,68vw);height:auto}
 .ped-mini{display:flex;align-items:center;gap:14px;margin:10px 0 0;color:var(--muted)}
@@ -825,10 +827,10 @@ function pedCall(fn,body){return fetch(PED.url+fn,{method:'POST',headers:{'apike
 function pedErro(id,msg){var e=$(id);e.textContent=msg||'';e.hidden=!msg;}
 function pedSair(msg){pedSet(PED.kCod,'');renderPedidos();pedErro('#ped-code-erro',msg);}
 var PEDV={lista:[],ped:0,prop:0,modo:''};
-var PED_PROP={aberta:'Aguardando você',aprovada:'Aprovada',mudanca:'Mudança pedida',nao_escolhida:'Não escolhida'};
+var PED_PROP={aberta:'Aguardando você',aprovada:'Aprovada',mudanca:'Mudança pedida',nao_escolhida:'Não escolhida',descartada:'Descartada'};
 function pedChip(s){return '<span class="ped-chip '+esc(s)+'">'+esc(PED_PROP[s]||s)+'</span>';}
 function pedCirculo(id,props){
-  var l=props.filter(function(x){return x.pedido_id===id;});
+  var l=props.filter(function(x){return x.pedido_id===id&&x.status!=='descartada';});
   if(!l.length)return '';
   var ok=l.some(function(x){return x.status==='aprovada';}),novas=l.some(function(x){return x.status==='aberta';});
   var txt=ok?'Proposta aprovada':(l.length===1?'1 proposta para ver':l.length+' propostas para ver');
@@ -836,18 +838,22 @@ function pedCirculo(id,props){
 }
 function pedDesenha(){
   var box=$('#ped-prop'),ped=PEDV.ped;
-  var l=PEDV.lista.filter(function(x){return x.pedido_id===ped;});
-  var p=PEDV.prop?l.filter(function(x){return x.id===PEDV.prop;})[0]:null;
-  if(!l.length){box.innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><p class="hintp">Nenhuma proposta neste pedido.</p>';return;}
-  if(!p){
-    box.innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><h2 class="title">Propostas</h2><p class="lede">Toque em uma proposta para ver de perto e responder.</p>'
-      +l.map(function(x){
-        return '<a class="ped-card" href="#pedidos/'+ped+'/'+x.id+'"><span class="ped-thumb"><img src="'+esc(x.imagem)+'" alt=""></span><span class="ped-cardt"><b>'+esc(x.titulo)+'</b>'+pedChip(x.status)+'</span></a>';
-      }).join('');
+  var todas=PEDV.lista.filter(function(x){return x.pedido_id===ped;});
+  var l=todas.filter(function(x){return x.status!=='descartada';}),desc=todas.filter(function(x){return x.status==='descartada';});
+  var p=PEDV.prop?todas.filter(function(x){return x.id===PEDV.prop;})[0]:null;
+  function cartao(x){return '<a class="ped-card" href="#pedidos/'+ped+'/'+x.id+'"><span class="ped-thumb"><img src="'+esc(x.imagem)+'" alt=""></span><span class="ped-cardt"><b>'+esc(x.titulo)+'</b>'+pedChip(x.status)+'</span></a>';}
+  if(!todas.length){box.innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><p class="hintp">Nenhuma proposta neste pedido.</p>';return;}
+  if(PEDV.pasta){
+    box.innerHTML='<a class="ped-back mono" href="#pedidos/'+ped+'">‹ Todas as propostas</a><h2 class="title">Descartadas</h2><p class="lede">Propostas que ficaram de lado. Aqui é só para consulta.</p>'+desc.map(cartao).join('');
     return;
   }
-  var fechada=l.some(function(x){return x.status==='aprovada';}),acoes='';
-  if(!fechada){
+  if(!p){
+    var pasta=desc.length?'<a class="ped-card ped-pasta" href="#pedidos/'+ped+'/d"><span class="ped-thumb"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span><span class="ped-cardt"><b>Descartadas</b><span class="mono">'+desc.length+(desc.length===1?' logo':' logos')+'</span></span></a>':'';
+    box.innerHTML='<a class="ped-back mono" href="#pedidos">‹ Voltar aos pedidos</a><h2 class="title">Propostas</h2><p class="lede">Toque em uma proposta para ver de perto e responder.</p>'+l.map(cartao).join('')+pasta;
+    return;
+  }
+  var fechada=l.some(function(x){return x.status==='aprovada';}),acoes='',descartada=p.status==='descartada';
+  if(!fechada&&!descartada){
     if(PEDV.modo==='aprovar'){
       acoes='<p class="hintp">Aprovar esta proposta? As outras deste pedido deixam de valer.</p><div class="ped-acoes"><button class="btn-like" type="button" data-px="confirma">Sim, aprovar</button><button class="btn-pass" type="button" data-px="cancela">Cancelar</button></div>';
     }else if(PEDV.modo==='mudar'){
@@ -857,7 +863,7 @@ function pedDesenha(){
     }
   }
   var img=esc(p.imagem);
-  box.innerHTML='<a class="ped-back mono" href="#pedidos/'+ped+'">‹ Todas as propostas</a><h2 class="title">'+esc(p.titulo)+'</h2>'
+  box.innerHTML='<a class="ped-back mono" href="#pedidos/'+ped+(descartada?'/d">‹ Descartadas':'">‹ Todas as propostas')+'</a><h2 class="title">'+esc(p.titulo)+'</h2>'
     +'<div class="ped-grande"><img src="'+img+'" alt="Proposta: '+esc(p.titulo)+'"></div>'
     +'<div class="ped-mini"><img src="'+img+'" width="56" height="56" alt=""><img src="'+img+'" width="36" height="36" alt=""><img src="'+img+'" width="24" height="24" alt=""><span class="mono">em tamanho de ícone</span></div>'
     +(p.descricao?'<p class="ped-desc">'+esc(p.descricao)+'</p>':'')
@@ -900,7 +906,7 @@ function renderPedidos(){
   var tem=!!pedGet(PED.kCod),h=location.hash.slice(1).split('/'),ped=tem?(+h[1]||0):0;
   $('#ped-main').hidden=!!ped;$('#ped-prop').hidden=!ped;
   if(ped){
-    PEDV.ped=ped;PEDV.prop=+h[2]||0;PEDV.modo='';
+    PEDV.ped=ped;PEDV.prop=+h[2]||0;PEDV.pasta=h[2]==='d';PEDV.modo='';
     if(PEDV.lista.length)pedDesenha();
     pedBusca().catch(pedFalha);
     return;

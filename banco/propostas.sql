@@ -16,6 +16,11 @@ create table if not exists private.propostas (
 
 alter table private.propostas enable row level security;
 
+-- Propostas com status 'descartada' ficam na pasta Descartadas, só para consulta.
+alter table private.propostas drop constraint if exists propostas_status_check;
+alter table private.propostas add constraint propostas_status_check
+  check (status in ('aberta', 'aprovada', 'mudanca', 'nao_escolhida', 'descartada'));
+
 create or replace function public.jj_propostas(codigo text)
 returns table (id bigint, pedido_id bigint, titulo text, descricao text, imagem text, status text, comentario text)
 language plpgsql
@@ -51,6 +56,9 @@ begin
   if not found then
     raise exception 'proposta_inexistente';
   end if;
+  if alvo.status = 'descartada' then
+    raise exception 'descartada';
+  end if;
   if exists (select 1 from private.propostas where pedido_id = alvo.pedido_id and status = 'aprovada') then
     raise exception 'ja_aprovada';
   end if;
@@ -58,7 +66,7 @@ begin
   if acao = 'aprovar' then
     update private.propostas set status = 'aprovada', respondido_em = now() where id = alvo.id;
     update private.propostas set status = 'nao_escolhida', respondido_em = now()
-      where pedido_id = alvo.pedido_id and id <> alvo.id;
+      where pedido_id = alvo.pedido_id and id <> alvo.id and status <> 'descartada';
     update private.pedidos
       set resposta = 'Você aprovou: ' || alvo.titulo || '. Agora falta aplicar no app.', atualizado_em = now()
       where id = alvo.pedido_id;

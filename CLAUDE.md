@@ -54,6 +54,11 @@ SQL sempre em arquivo, porque texto com espaços quebra a chamada no Windows.
 insira em `private.propostas` (`pedido_id`, `titulo`, `descricao`, `imagem`). No pedido aparece um círculo; ele abre as
 propostas, com Aprovar e Pedir mudança. As respostas ficam em `status` e `comentario`. As logos vêm de
 `tools/gerar_logos.py`; o quadro editável está no Figma: https://www.figma.com/design/V7QVZbg6c1LGQJ0cAn9OI2
+Proposta que sai da disputa não é apagada: ganha `status = 'descartada'`, o arquivo vai para `web/propostas/descartadas/` e
+ela fica na pasta Descartadas da tela de propostas, só para consulta.
+
+Comentário do Daniel na logo (08/11/2026): gosta do minimalismo, quer ar mais jovem (público de 18 a 25) e nada que lembre
+o logo da Juventus (J alto de traços retos e paralelos).
 
 **Aviso no celular:** o `AvisoJob` do APK confere `web/versao.json` a cada 15 minutos ou mais (quem decide é o Android) e
 notifica quando a versão muda. A cada publicação, escreva em `source/novidade.txt` uma frase curta para o cliente sobre o
