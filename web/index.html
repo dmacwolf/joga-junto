@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080913">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20108%20108%22%3E%3Crect%20width%3D%22108%22%20height%3D%22108%22%20rx%3D%2222%22%20fill%3D%22%23080913%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M48%2C42V62Q48%2C76%2036%2C76%22%20stroke%3D%22%2322E6FF%22%2F%3E%3Cpath%20d%3D%22M72%2C42V62Q72%2C76%2060%2C76%22%20stroke%3D%22%23FF2F7D%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%2322E6FF%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%23FF2F7D%22%2F%3E%3C%2Fsvg%3E">
+<style>html{background:#080913;color-scheme:dark;-webkit-text-size-adjust:100%}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Joga Junto</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: HUD de jogo em tema escuro único. Fundo com grade e brilhos, cantos cortados nos painéis,
+   barra de nível no topo, cards de jogador com borda neon e jogos favoritos em blocos de inventário. */
+:root{
+  color-scheme:dark;
+  --bg:#080913; --surface:#10132B; --surface-2:#1A1E42; --line:#2C3268; --ink:#EDF1FF; --muted:#9099CC;
+  --cyan:#22E6FF; --cyan-ink:#031018; --magenta:#FF2F7D; --magenta-ink:#18020B; --violet:#8A5CFF;
+  --good:#38F29B; --star:#FFC94A; --scrim:rgba(4,5,12,.82);
+  --hit-bg:var(--cyan); --hit-fg:var(--cyan-ink); --accent:var(--magenta); --accent-ink:var(--magenta-ink);
+  --cut:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
+  --cut-in:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  --cut-sm:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  --cut-xs:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  --edge:linear-gradient(135deg,var(--cyan),var(--violet) 55%,var(--magenta));
+  --font-display:'Chakra Petch','Trebuchet MS',sans-serif; --font-body:'Barlow Semi Condensed',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,monospace; --tabh:62px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:16px; line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 calc(var(--tabh) + 28px);
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.fx{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(70% 45% at 85% -8%,rgba(138,92,255,.34),transparent 70%),
+    radial-gradient(60% 40% at -5% 20%,rgba(34,230,255,.15),transparent 70%),
+    radial-gradient(70% 45% at 50% 112%,rgba(255,47,125,.16),transparent 70%),
+    linear-gradient(rgba(34,230,255,.055) 1px,transparent 1px) 0 0/38px 38px,
+    linear-gradient(90deg,rgba(34,230,255,.055) 1px,transparent 1px) 0 0/38px 38px;}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+button:focus-visible{outline:none;box-shadow:inset 0 0 0 3px var(--cyan),inset 0 0 0 5px var(--bg)}
+.app{max-width:520px;margin:0 auto}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--font-mono);font-size:12px}
+.muted{color:var(--muted)}
+.center{text-align:center}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--bg);display:flex;align-items:center;justify-content:space-between;height:58px;border-bottom:1px solid var(--line)}
+.mark{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-style:italic;font-weight:700;font-size:19px;letter-spacing:.06em;text-transform:uppercase}
+.logo{width:26px;height:33px;flex:none;margin-right:2px}
+.logo .j1{stroke:var(--cyan)}.logo .j2{stroke:var(--magenta)}.logo .b1{fill:var(--cyan)}.logo .b2{fill:var(--magenta)}
+.mark .two{display:inline-block;margin-left:0;padding:0 9px;background:var(--magenta);color:var(--magenta-ink);transform:skewX(-12deg)}
+.lv{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:.1em;color:var(--cyan)}
+.lv b{font-size:18px;color:var(--ink)}
+.xp{width:64px;height:8px;background:var(--surface-2);clip-path:var(--cut-xs);overflow:hidden}
+.xp i{display:block;height:100%;width:0;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transition:width .4s}
+
+.pill{display:inline-flex;align-items:center;font-family:var(--font-display);font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;background:var(--surface-2);color:var(--ink);clip-path:var(--cut-xs)}
+.pill.on{background:var(--cyan);color:var(--cyan-ink)}
+
+h2.title{font-family:var(--font-display);font-weight:700;font-size:23px;letter-spacing:.04em;text-transform:uppercase;margin:16px 0 6px;text-wrap:balance}
+h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;background:var(--magenta);box-shadow:0 0 10px var(--magenta)}
+.lede{margin:10px 0 16px;color:var(--muted);max-width:60ch}
+.lbl{font-family:var(--font-display);font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+.lbl::before{content:"//";color:var(--magenta);margin-right:6px}
+.lblrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+
+/* deck */
+.hint{display:flex;justify-content:space-between;gap:8px;margin:10px 0;color:var(--muted);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+.deck{position:relative;height:clamp(480px,calc(100dvh - 290px),650px);filter:drop-shadow(0 0 16px rgba(34,230,255,.24)) drop-shadow(0 0 38px rgba(138,92,255,.2))}
+.card{position:absolute;inset:0;padding:2px;background:var(--edge);clip-path:var(--cut);display:flex;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.card.behind{transform:scale(.95) translateY(14px);opacity:.7;pointer-events:none}
+.card-in{position:relative;flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;clip-path:var(--cut-in);background:linear-gradient(180deg,#171A42,var(--surface) 38%)}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.who{display:flex;flex-direction:column;gap:2px;min-width:0}
+.who h2{margin:0;font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:.03em;text-transform:uppercase;line-height:1.1}
+.who .mono{color:var(--muted)}
+.score{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+.score b{font-family:var(--font-display);font-weight:700;font-size:28px;line-height:1;color:var(--cyan);text-shadow:0 0 14px rgba(34,230,255,.55)}
+.seg{display:flex;gap:2px;margin-top:6px}
+.seg i{width:7px;height:7px;background:var(--surface-2);clip-path:polygon(2px 0,100% 0,calc(100% - 2px) 100%,0 100%)}
+.seg i.on{background:var(--cyan)}
+.score span.t{margin-top:5px;font-family:var(--font-display);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.stamp{position:absolute;top:92px;z-index:2;font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.1em;padding:4px 14px;opacity:0;clip-path:var(--cut-xs)}
+.stamp.like{left:16px;background:var(--good);color:#02130B;transform:rotate(-8deg)}
+.stamp.nope{right:16px;background:var(--surface-2);color:var(--ink);transform:rotate(8deg);box-shadow:inset 0 0 0 2px var(--line)}
+.card .body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px 18px 18px;display:flex;flex-direction:column;gap:15px}
+.sect{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{min-width:0;padding:9px 11px 9px 13px;background:var(--surface-2);clip-path:var(--cut-sm);box-shadow:inset 3px 0 0 var(--line);display:flex;flex-direction:column;gap:3px}
+.tile b{font-family:var(--font-display);font-weight:600;font-size:15px;line-height:1.15;overflow-wrap:anywhere}
+.tile span{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.tile.hit{background:linear-gradient(135deg,#3AEBFF,#12BFD8);color:var(--cyan-ink);box-shadow:inset 3px 0 0 var(--magenta)}
+.tile.hit span{color:var(--cyan-ink);opacity:.8}
+.meter .track{position:relative;height:10px;margin:10px 9px 8px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--magenta));clip-path:var(--cut-xs)}
+.mk{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;transform:translate(-50%,-50%)}
+.mk.them{background:#fff;box-shadow:0 0 0 3px var(--bg),0 0 12px #fff}
+.mk.me{background:var(--bg);border:3px solid #fff;box-shadow:0 0 0 2px var(--bg)}
+.ends{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.goals{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.goal{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-display);font-size:12.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:4px 12px 4px 4px;background:var(--surface-2);clip-path:var(--cut-xs)}
+.goal i{font-style:normal;font-family:var(--font-mono);font-size:11px;min-width:22px;height:22px;display:grid;place-items:center;background:var(--bg);color:var(--ink)}
+.goal.hit{background:var(--cyan);color:var(--cyan-ink)}
+.goal.hit i{background:var(--cyan-ink);color:var(--cyan)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.plat{font-family:var(--font-mono);font-size:11.5px;padding:3px 8px;border:1px solid var(--line);color:var(--muted)}
+.plat.on{border-color:var(--cyan);color:var(--cyan)}
+.why{list-style:none;margin:0;padding:0;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.why li::before{content:"✓ ";color:var(--good);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--font-display);font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:7px 12px;background:var(--surface-2);color:var(--ink);border:0;clip-path:var(--cut-xs)}
+.btnchip[aria-pressed="true"]{background:var(--cyan);color:var(--cyan-ink)}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+.chips.scroll .chip{flex:none}
+
+.actions{display:flex;gap:12px;margin-top:18px}
+.btn-pass,.btn-like{height:56px;flex:1;font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.1em;text-transform:uppercase;padding:0 18px;border:0;clip-path:var(--cut-sm)}
+.btn-pass{background:var(--surface-2);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.btn-like{background:linear-gradient(135deg,#FF4A8F,var(--magenta));color:var(--accent-ink);box-shadow:inset 0 -4px 0 rgba(0,0,0,.28)}
+.btn-pass.sm,.btn-like.sm{height:42px;flex:none;font-size:13px}
+.keys{margin:12px 0 0;text-align:center;color:var(--muted)}
+@media (hover:none){.keys{display:none}}
+.note{margin:18px 0 0;font-size:13.5px;color:var(--muted)}
+
+.empty{border:2px dashed var(--line);padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(16,19,43,.6)}
+.empty h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+.empty p{margin:0;max-width:34ch}
+.deck .empty{position:absolute;inset:0;justify-content:center}
+
+/* lists */
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 0}
+.rt{display:flex;flex-direction:column;min-width:0;flex:1}
+.rt b{font-family:var(--font-display);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.rt .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14.5px}
+.pct{color:var(--cyan);font-weight:600}
+.av{--h:200;display:grid;place-items:center;flex:none;width:46px;height:50px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);color:#fff;font-family:var(--font-display);font-weight:700;font-size:15px;background:linear-gradient(135deg,hsl(var(--h) 80% 55%),hsl(calc(var(--h) + 55) 75% 36%))}
+
+/* thread */
+.thread-head{display:flex;align-items:center;gap:12px;padding:6px 0 12px;border-bottom:1px solid var(--line)}
+.link{background:none;border:0;padding:8px 0;color:var(--cyan);font-family:var(--font-display);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.msgs{display:flex;flex-direction:column;padding:12px 0;min-height:160px}
+.msg{max-width:82%;padding:9px 14px;margin:4px 0;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:var(--cyan);color:var(--cyan-ink);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+.msg.them{align-self:flex-start;background:var(--surface-2);clip-path:polygon(0 0,100% 0,100% 100%,10px 100%,0 calc(100% - 10px))}
+.composer{position:sticky;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 8px);background:var(--bg);padding:8px 0;display:flex;flex-direction:column;gap:8px}
+#msg-form{display:flex;gap:8px}
+input[type=text],input:not([type]){flex:1;min-width:0;height:46px;border:1.5px solid var(--line);background:var(--surface-2);padding:0 12px;font-size:16px;border-radius:2px}
+input[type=text]:focus,input:not([type]):focus{border-color:var(--cyan)}
+
+/* games */
+.game{display:grid;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)}
+.game-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.game h3{margin:0;font-family:var(--font-display);font-size:17px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.meta{display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap}
+.stars{display:flex}
+.star{background:none;border:0;font-size:26px;line-height:1;width:40px;height:40px;color:var(--line);padding:0}
+.star.on{color:var(--star);text-shadow:0 0 10px rgba(255,201,74,.6)}
+.review{display:flex;gap:8px;flex-wrap:wrap}
+.review input{flex:1 1 180px}
+
+/* profile */
+.group{display:flex;flex-direction:column;gap:9px;margin:0 0 24px}
+.hintp{margin:0;font-size:14.5px;color:var(--muted);max-width:60ch}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pick{min-width:0;text-align:left;padding:10px 12px 10px 14px;background:var(--surface-2);border:0;clip-path:var(--cut-sm);box-shadow:inset 3px 0 0 var(--line);font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:.02em}
+.pick small{display:block;font-family:var(--font-mono);font-weight:500;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.pick[aria-pressed="true"]{background:linear-gradient(135deg,#3AEBFF,#12BFD8);color:var(--cyan-ink);box-shadow:inset 3px 0 0 var(--magenta)}
+.pick[aria-pressed="true"] small{color:var(--cyan-ink);opacity:.8}
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rankrow{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface-2);clip-path:var(--cut-sm);box-shadow:inset 3px 0 0 var(--line)}
+.rankrow.top{box-shadow:inset 3px 0 0 var(--magenta)}
+.rankrow .sub{white-space:normal;font-size:14px}
+.rk{width:28px;height:28px;background:var(--cyan);color:var(--cyan-ink);display:grid;place-items:center;flex:none;font-weight:700;clip-path:var(--cut-xs)}
+.mv{display:flex;gap:6px;flex:none}
+.mv button{width:42px;height:42px;background:var(--surface);color:var(--ink);border:0;font-size:18px;line-height:1;padding:0;clip-path:var(--cut-xs);box-shadow:inset 0 0 0 1.5px var(--line)}
+.mv button:disabled{opacity:.3;cursor:default}
+input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
+.bar{display:grid;grid-template-columns:110px 1fr 22px;gap:10px;align-items:center;font-size:14.5px}
+.bar .track{height:8px;background:var(--surface-2);overflow:hidden;clip-path:var(--cut-xs)}
+.bar i{display:block;height:100%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.danger{margin-top:8px}
+
+/* buscar */
+.searchbox{display:flex;gap:8px;margin-bottom:10px}
+.sugg{min-height:8px;margin-bottom:6px}
+.similar{display:flex;flex-direction:column;gap:8px}
+.restitle{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.03em;text-transform:uppercase;margin:20px 0 10px}
+.res{background:var(--surface);clip-path:var(--cut-sm);box-shadow:inset 3px 0 0 var(--line);padding:14px 14px 14px 18px;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.res.top{box-shadow:inset 3px 0 0 var(--cyan)}
+.res-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.res h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.03em;text-transform:uppercase}
+.res-why{margin:0;color:var(--muted);font-size:15px}
+.res-why b{color:var(--ink);font-weight:600}
+.res .chip{padding:5px 10px;font-size:12px}
+.res-foot{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.score.sm b{font-size:23px}
+.chip.hit{background:var(--cyan);color:var(--cyan-ink)}
+.tab .count{position:absolute;top:8px;right:3px;min-width:16px;height:16px;padding:0 3px;font-size:10px}
+
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(8,9,19,.94);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(34,230,255,.07);
+  padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px));padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:var(--tabh);font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;min-width:0;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.tab.on{color:var(--cyan)}
+.tab.on::before{content:"";position:absolute;top:-1px;left:18%;right:18%;height:3px;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+.count{min-width:19px;height:19px;padding:0 5px;background:var(--magenta);color:var(--magenta-ink);font-size:11px;display:inline-grid;place-items:center;font-family:var(--font-mono);clip-path:var(--cut-xs)}
+
+/* overlay, toast, sheet */
+.overlay{position:fixed;inset:0;z-index:50;background:var(--scrim);display:grid;place-items:center;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.dialog{max-width:380px;width:100%;padding:2px;background:var(--edge);clip-path:var(--cut);filter:none}
+.dialog-in{clip-path:var(--cut-in);background:linear-gradient(180deg,#171A42,var(--surface));padding:26px 22px 22px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.eyebrow{color:var(--cyan);letter-spacing:.2em;text-transform:uppercase}
+.dialog h2{margin:0;font-family:var(--font-display);font-style:italic;font-weight:700;font-size:34px;letter-spacing:.04em;text-transform:uppercase;color:#fff;text-shadow:0 0 20px rgba(255,47,125,.8),0 0 4px rgba(255,47,125,.9)}
+.dialog p{margin:0;color:var(--muted)}
+.bigpct{font-family:var(--font-display);font-weight:700;font-size:52px;line-height:1;color:var(--cyan);text-shadow:0 0 22px rgba(34,230,255,.7)}
+.dialog .actions{width:100%;flex-direction:column;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);z-index:60;background:var(--cyan);color:var(--cyan-ink);padding:9px 18px;font-family:var(--font-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;clip-path:var(--cut-xs)}
+.toast.show{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:55;background:var(--surface);border-top:2px solid var(--cyan);padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+.sheet textarea{width:100%;border:1.5px solid var(--line);background:var(--surface-2);padding:10px;font-size:16px;border-radius:2px}
+@media (prefers-reduced-motion:no-preference){
+  .dialog{animation:pop .3s ease}
+  @keyframes pop{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
+}
+</style>
+
+</head>
+<body>
+<div class="fx" aria-hidden="true"></div>
+<div class="app">
+  <header class="top">
+    <div class="mark"><svg class="logo" viewBox="28 18 52 66" aria-hidden="true"><g fill="none" stroke-width="8" stroke-linecap="round"><path class="j1" d="M48,42V62Q48,76 36,76"/><path class="j2" d="M72,42V62Q72,76 60,76"/></g><circle class="b1" cx="48" cy="30" r="7.5"/><circle class="b2" cx="72" cy="30" r="7.5"/></svg>Joga<span class="two">Junto</span></div>
+    <div class="lv" id="lv" role="img" aria-label="Nível 1">LV <b id="lv-n">1</b><span class="xp"><i id="xp"></i></span></div>
+  </header>
+
+  <section id="v-descobrir" aria-label="Descobrir jogadores">
+    <p class="hint"><span id="left"></span><span>ordem: sinergia</span></p>
+    <div class="deck" id="deck"></div>
+    <div class="actions" id="actions">
+      <button class="btn-pass" id="btn-pass" type="button">Passar</button>
+      <button class="btn-like" id="btn-like" type="button">Bora jogar</button>
+    </div>
+    <p class="keys mono">← passar · → bora jogar</p>
+    <p class="note">Os jogadores aqui são exemplos. Seus matches, conversas e notas ficam salvos só neste navegador. Curtir, avaliar e dar match sobe seu nível.</p>
+  </section>
+
+  <section id="v-matches" aria-label="Matches" hidden>
+    <h2 class="title">Matches</h2>
+    <p class="lede">Gente que combina com você e curtiu de volta. Comece por um assunto em comum.</p>
+    <div id="matches-box"></div>
+  </section>
+
+    <section id="v-buscar" aria-label="Buscar por jogo" hidden>
+    <h2 class="title">Buscar por jogo</h2>
+    <p class="lede">Digite um jogo. Mostro quem joga ele ou algo parecido, do mais parecido ao menos.</p>
+    <form id="q-form" class="searchbox" autocomplete="off">
+      <label class="sr" for="q">Nome do jogo</label>
+      <input id="q" type="text" autocomplete="off" enterkeyhint="search" placeholder="Ex.: Hades, Valorant, Stardew">
+      <button class="btn-like sm" type="submit">Buscar</button>
+    </form>
+    <div class="chips sugg" id="q-sugg"></div>
+    <div id="q-out"></div>
+  </section>
+
+  <section id="v-jogos" aria-label="Jogos" hidden>
+    <h2 class="title">Seus jogos</h2>
+    <p class="lede">Dê nota, escreva uma linha e compartilhe. Notas altas contam como jogo favorito na hora de achar sinergia.</p>
+    <div id="games-box"></div>
+  </section>
+
+  <section id="v-perfil" aria-label="Perfil" hidden>
+    <h2 class="title">Seu perfil</h2>
+    <p class="lede">Já deixei um perfil de exemplo. Ajuste e a fila de jogadores se reordena.</p>
+    <div id="profile-box"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Seções">
+  <div class="tabs-in">
+    <a class="tab" data-v="descobrir" href="#descobrir">Descobrir</a>
+    <a class="tab" data-v="matches" href="#matches">Matches <span class="count" id="badge" hidden>0</span></a>
+    <a class="tab" data-v="buscar" href="#buscar">Buscar</a>
+    <a class="tab" data-v="jogos" href="#jogos">Jogos</a>
+    <a class="tab" data-v="perfil" href="#perfil">Perfil</a>
+  </div>
+</nav>
+
+<div class="overlay" id="match" role="dialog" aria-modal="true" aria-labelledby="match-title" hidden>
+  <div class="dialog"><div class="dialog-in">
+    <span class="eyebrow mono">Parceiro encontrado</span>
+    <div id="match-pair"></div>
+    <h2 id="match-title">Deu match!</h2>
+    <p id="match-text"></p>
+    <div class="actions">
+      <button class="btn-like" id="match-chat" type="button">Puxar assunto</button>
+      <button class="btn-pass" id="match-close" type="button">Seguir deslizando</button>
+    </div>
+  </div></div>
+</div>
+
+<div class="sheet" id="copybox" hidden>
+  <label class="lbl" for="copy-ta">Copie o texto abaixo</label>
+  <textarea id="copy-ta" readonly rows="3"></textarea>
+  <button class="btn-pass sm" id="copy-close" type="button">Fechar</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+var GAMES=[
+ {id:'hades',n:'Hades',g:'Roguelike'},{id:'elden',n:'Elden Ring',g:'RPG'},{id:'stardew',n:'Stardew Valley',g:'Cozy'},
+ {id:'valorant',n:'Valorant',g:'FPS'},{id:'cs2',n:'Counter-Strike 2',g:'FPS'},{id:'lol',n:'League of Legends',g:'MOBA'},
+ {id:'mine',n:'Minecraft',g:'Sobrevivência'},{id:'celeste',n:'Celeste',g:'Plataforma'},{id:'bg3',n:"Baldur's Gate 3",g:'RPG'},
+ {id:'ittakestwo',n:'It Takes Two',g:'Co-op'},{id:'overcooked',n:'Overcooked 2',g:'Co-op'},{id:'rocket',n:'Rocket League',g:'Esporte'},
+ {id:'apex',n:'Apex Legends',g:'FPS'},{id:'helldivers',n:'Helldivers 2',g:'Co-op'},{id:'hollow',n:'Hollow Knight',g:'Plataforma'},
+ {id:'terraria',n:'Terraria',g:'Sobrevivência'},{id:'civ6',n:'Civilization VI',g:'Estratégia'},{id:'fc',n:'EA FC',g:'Esporte'},
+ {id:'sf6',n:'Street Fighter 6',g:'Luta'},{id:'amongus',n:'Among Us',g:'Social'},{id:'lethal',n:'Lethal Company',g:'Co-op'}
+];
+var G={};GAMES.forEach(function(g){G[g.id]=g;});
+var GENRES=[];GAMES.forEach(function(g){if(GENRES.indexOf(g.g)<0)GENRES.push(g.g);});
+var GOAL_IDS=['amizade','competitivo','casual','profundo','leve'];
+var GOALS={
+ amizade:{n:'Amizade',d:'Conhecer gente e manter contato depois do jogo.'},
+ competitivo:{n:'Competir',d:'Rank, treino e partida valendo.'},
+ casual:{n:'Sem pressão',d:'Jogar sem meta nem cobrança.'},
+ profundo:{n:'Papo profundo',d:'Conversar sobre vida, ideias e histórias.'},
+ leve:{n:'Papo leve',d:'Zoeira, meme e assunto de boa.'}
+};
+var PLATS=['PC','PS5','Xbox','Switch','Celular'];
+var SCHEDS=['Manhã','Tarde','Noite','Madrugada'];
+var WHEN={'Manhã':'de manhã','Tarde':'à tarde','Noite':'à noite','Madrugada':'de madrugada'};
+var PLAYERS=[
+ {id:'p1',name:'Camila',handle:'camis.exe',uf:'SP',comp:25,music:true,sched:'Noite',plats:['PC','Switch'],goals:['amizade','profundo','casual','leve','competitivo'],games:['hades','hollow','celeste','stardew','ittakestwo']},
+ {id:'p2',name:'Rafael',handle:'rafa_tank',uf:'MG',comp:90,music:false,sched:'Noite',plats:['PC'],goals:['competitivo','leve','amizade','casual','profundo'],games:['valorant','cs2','apex','lol']},
+ {id:'p3',name:'Beatriz',handle:'biadrops',uf:'RJ',comp:10,music:true,sched:'Tarde',plats:['Switch','Celular'],goals:['casual','amizade','leve','profundo','competitivo'],games:['stardew','mine','terraria','overcooked','amongus']},
+ {id:'p4',name:'Leonardo',handle:'leo.parry',uf:'RS',comp:55,music:true,sched:'Madrugada',plats:['PC','PS5'],goals:['profundo','amizade','competitivo','casual','leve'],games:['elden','hollow','bg3','sf6','hades']},
+ {id:'p5',name:'Eduarda',handle:'duda404',uf:'PE',comp:30,music:true,sched:'Noite',plats:['PS5','PC'],goals:['leve','amizade','casual','profundo','competitivo'],games:['lethal','helldivers','ittakestwo','overcooked','amongus']},
+ {id:'p6',name:'Thiago',handle:'thg_clutch',uf:'BA',comp:95,music:false,sched:'Madrugada',plats:['PC'],goals:['competitivo','leve','casual','amizade','profundo'],games:['cs2','valorant','rocket','apex']},
+ {id:'p7',name:'Nina',handle:'ninaplays',uf:'PR',comp:40,music:true,sched:'Tarde',plats:['PC','Xbox'],goals:['amizade','casual','leve','profundo','competitivo'],games:['helldivers','lethal','terraria','mine','civ6']},
+ {id:'p8',name:'Gabriela',handle:'gabi_ult',uf:'SC',comp:80,music:true,sched:'Noite',plats:['PC'],goals:['competitivo','amizade','leve','profundo','casual'],games:['lol','valorant','rocket','sf6']},
+ {id:'p9',name:'Pedro',handle:'ped.speedrun',uf:'GO',comp:60,music:false,sched:'Manhã',plats:['PC','Switch'],goals:['competitivo','profundo','amizade','casual','leve'],games:['celeste','hollow','hades','elden']},
+ {id:'p10',name:'Luiza',handle:'luizinha_coop',uf:'CE',comp:15,music:true,sched:'Tarde',plats:['Switch','PS5'],goals:['amizade','casual','profundo','leve','competitivo'],games:['ittakestwo','overcooked','stardew','mine']},
+ {id:'p11',name:'Caio',handle:'caio_og',uf:'DF',comp:35,music:false,sched:'Noite',plats:['PC','PS5'],goals:['leve','casual','amizade','competitivo','profundo'],games:['cs2','fc','rocket','mine','amongus']},
+ {id:'p12',name:'Marina',handle:'mari_nocturna',uf:'SP',comp:45,music:true,sched:'Madrugada',plats:['PC'],goals:['profundo','amizade','casual','competitivo','leve'],games:['bg3','elden','civ6','hades','stardew']}
+];
+var P={};PLAYERS.forEach(function(p){P[p.id]=p;});
+var KEY='player2-v2';
+var REDUCED=false;try{REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+
+function defaults(){return {profile:{handle:'seu_nick',plats:['PC'],comp:30,music:true,sched:'Noite',goals:['amizade','casual','leve','profundo','competitivo'],games:['hades','stardew','ittakestwo','hollow']},ratings:{},likes:[],passes:[],matches:[]};}
+function load(){try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);var base=defaults();for(var k in base){if(d[k]!==undefined)base[k]=d[k];}
+  var pr=d.profile||{};for(var j in base.profile){if(pr[j]!==undefined)base.profile[j]=pr[j];}
+  if(!Array.isArray(base.profile.goals)||base.profile.goals.length!==GOAL_IDS.length)base.profile.goals=defaults().profile.goals;
+  return base;}}catch(e){}return defaults();}
+var S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}renderLevel();}
+var ui={genre:'Todos',thread:null,busy:false,confirmReset:false};
+
+function $(s,r){return (r||document).querySelector(s);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function hash(str){var h=0;for(var i=0;i<str.length;i++){h=(h*31+str.charCodeAt(i))>>>0;}return h;}
+function hue(key){return hash(key)%360;}
+function initials(handle){return (String(handle).replace(/[^a-z0-9]/gi,'').slice(0,2)||'P2').toUpperCase();}
+function av(key,handle){return '<span class="av" style="--h:'+hue(key)+'">'+esc(initials(handle))+'</span>';}
+function modeLabel(v){return v<34?'Casual':(v<67?'Equilibrado':'Competitivo');}
+function renderLevel(){
+  var n=$('#lv-n');if(!n)return;
+  var xp=Object.keys(S.ratings).length*2+S.likes.length+S.matches.length*3+S.profile.games.length;
+  var lvl=1+Math.floor(xp/10),prog=(xp%10)*10;
+  n.textContent=lvl;$('#xp').style.width=prog+'%';
+  $('#lv').setAttribute('aria-label','Nível '+lvl+', '+prog+'% para o próximo');
+}
+
+function myGames(){
+  var s=new Set(S.profile.games);
+  Object.keys(S.ratings).forEach(function(id){var r=S.ratings[id];if(r.stars>=4)s.add(id);else if(r.stars&&r.stars<=2)s.delete(id);});
+  return s;
+}
+function wmap(arr){var m={};arr.forEach(function(id,i){m[id]=arr.length-i;});return m;}
+function compat(p){
+  var mine=myGames();
+  var shared=p.games.filter(function(id){return mine.has(id);});
+  var myG=new Set(Array.from(mine).map(function(id){return G[id].g;}));
+  var thG=new Set(p.games.map(function(id){return G[id].g;}));
+  var inter=0;myG.forEach(function(x){if(thG.has(x))inter++;});
+  var uni=new Set(Array.from(myG).concat(Array.from(thG))).size||1;
+  var plats=p.plats.filter(function(x){return S.profile.plats.indexOf(x)>=0;});
+  var a=wmap(S.profile.goals),b=wmap(p.goals),smin=0,smax=0;
+  GOAL_IDS.forEach(function(id){var x=a[id]||0,y=b[id]||0;smin+=Math.min(x,y);smax+=Math.max(x,y);});
+  var goalScore=smax?smin/smax:0;
+  var modeScore=1-Math.abs(p.comp-S.profile.comp)/100;
+  var raw=0.30*Math.min(1,shared.length/3)+0.30*goalScore+0.15*modeScore+0.10*(inter/uni)+0.10*(p.music===S.profile.music?1:0.4)+0.05*(p.sched===S.profile.sched?1:0.3);
+  var pct=Math.round(Math.max(5,Math.min(99,raw*100*(plats.length?1:0.8))));
+  var mine3=S.profile.goals.slice(0,3),th3=p.goals.slice(0,3);
+  var sharedGoals=th3.filter(function(id){return mine3.indexOf(id)>=0;});
+  var reasons=[];
+  if(S.profile.goals[0]===p.goals[0])reasons.push('Mesmo objetivo principal: '+GOALS[p.goals[0]].n);
+  else if(sharedGoals.length)reasons.push(sharedGoals.length+(sharedGoals.length===1?' objetivo':' objetivos')+' em comum no top 3');
+  if(shared.length)reasons.push(shared.length+(shared.length===1?' jogo favorito':' jogos favoritos')+' em comum');
+  if(Math.abs(p.comp-S.profile.comp)<=20)reasons.push('Mesmo ritmo de jogo');
+  if(p.music&&S.profile.music)reasons.push('Os dois curtem música');
+  return {pct:pct,shared:shared,plats:plats,sharedGoals:sharedGoals,reasons:reasons.slice(0,3)};
+}
+function likesBack(p,c){return (hash(p.id+'p2')%100)<c.pct+20;}
+function queue(){
+  var done=new Set(S.likes.concat(S.passes));
+  return PLAYERS.filter(function(p){return !done.has(p.id);}).map(function(p){return {p:p,c:compat(p)};}).sort(function(a,b){return b.c.pct-a.c.pct;});
+}
+
+/* ---------- descobrir ---------- */
+function segBar(pct){var n=Math.round(pct/10),h='';for(var i=0;i<10;i++)h+='<i'+(i<n?' class="on"':'')+'></i>';return '<span class="seg" aria-hidden="true">'+h+'</span>';}
+function cardHTML(p,c){
+  var order=c.shared.concat(p.games.filter(function(id){return c.shared.indexOf(id)<0;}));
+  var tiles=order.slice(0,4).map(function(id){
+    var hit=c.shared.indexOf(id)>=0;
+    return '<div class="tile'+(hit?' hit':'')+'"><b>'+esc(G[id].n)+'</b><span>'+esc(G[id].g)+(hit?' · você também':'')+'</span></div>';
+  }).join('');
+  var more=order.length>4?'<span class="mono muted">+'+(order.length-4)+'</span>':'';
+  var goals=p.goals.slice(0,3).map(function(id,i){
+    return '<li class="goal'+(c.sharedGoals.indexOf(id)>=0?' hit':'')+'"><i>'+(i+1)+'</i>'+esc(GOALS[id].n)+'</li>';
+  }).join('');
+  var plats=p.plats.map(function(x){return '<span class="plat'+(S.profile.plats.indexOf(x)>=0?' on':'')+'">'+esc(x)+'</span>';}).join('');
+  var why=c.reasons.length?'<ul class="why">'+c.reasons.map(function(r){return '<li>'+esc(r)+'</li>';}).join('')+'</ul>':'';
+  return '<article class="card"><div class="card-in">'
+   +'<span class="stamp like">BORA</span><span class="stamp nope">PASSO</span>'
+   +'<div class="head"><div class="who"><h2>'+esc(p.name)+'</h2><span class="mono">@'+esc(p.handle)+' · '+esc(p.uf)+'</span></div>'
+   +'<div class="score"><b>'+c.pct+'%</b>'+segBar(c.pct)+'<span class="t">sinergia</span></div></div>'
+   +'<div class="body">'
+   +'<div class="sect"><div class="lblrow"><span class="lbl">Jogos favoritos</span>'+more+'</div><div class="tiles">'+tiles+'</div></div>'
+   +'<div class="sect meter"><div class="lblrow"><span class="lbl">Jeito de jogar</span><span class="mono muted">'+esc(p.name)+': '+modeLabel(p.comp)+'</span></div>'
+   +'<div class="track" role="img" aria-label="'+esc(p.name)+': '+modeLabel(p.comp)+'. Você: '+modeLabel(S.profile.comp)+'."><span class="mk them" style="left:'+p.comp+'%"></span><span class="mk me" style="left:'+S.profile.comp+'%"></span></div>'
+   +'<div class="ends"><span>Casual</span><span>● '+esc(p.name)+' · ○ você</span><span>Competitivo</span></div></div>'
+   +'<div class="sect"><div class="lblrow"><span class="lbl">Objetivos, em ordem</span></div><ol class="goals">'+goals+'</ol></div>'
+   +'<div class="tags"><span class="pill'+(p.music===S.profile.music?' on':'')+'">'+(p.music?'♪ Curte música':'Prefere sem música')+'</span><span class="pill">'+esc(WHEN[p.sched])+'</span>'+plats+'</div>'
+   +why
+   +'</div></div></article>';
+}
+function renderDeck(){
+  var q=queue(),deck=$('#deck');
+  deck.innerHTML='';
+  $('#left').textContent=q.length+(q.length===1?' jogador na fila':' jogadores na fila');
+  if(!q.length){
+    deck.innerHTML='<div class="empty"><h3>Fila zerada</h3><p>Você já viu todo mundo por aqui. Quer rever quem você passou?</p><button class="btn-like sm" id="reset-deck" type="button">Rever quem passei</button></div>';
+    $('#actions').hidden=true;return;
+  }
+  $('#actions').hidden=false;
+  if(q[1]){deck.insertAdjacentHTML('beforeend',cardHTML(q[1].p,q[1].c).replace('class="card"','class="card behind"'));}
+  deck.insertAdjacentHTML('beforeend',cardHTML(q[0].p,q[0].c));
+  attachDrag(deck.lastElementChild);
+}
+function attachDrag(card){
+  var sx=0,dx=0,drag=false;
+  var like=card.querySelector('.stamp.like'),nope=card.querySelector('.stamp.nope');
+  card.addEventListener('pointerdown',function(e){
+    if(ui.busy||!e.isPrimary)return;
+    drag=true;sx=e.clientX;dx=0;card.style.transition='none';
+    try{card.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  card.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    dx=e.clientX-sx;
+    card.style.transform='translateX('+dx+'px) rotate('+(dx/20)+'deg)';
+    like.style.opacity=Math.max(0,Math.min(1,dx/90));
+    nope.style.opacity=Math.max(0,Math.min(1,-dx/90));
+  });
+  function end(){
+    if(!drag)return;drag=false;
+    if(Math.abs(dx)>100){decide(dx>0?'like':'pass');}
+    else{card.style.transition='transform .25s ease';card.style.transform='';like.style.opacity=0;nope.style.opacity=0;}
+  }
+  card.addEventListener('pointerup',end);
+  card.addEventListener('pointercancel',end);
+}
+function decide(dir){
+  if(ui.busy)return;
+  var q=queue();if(!q.length)return;
+  ui.busy=true;
+  var p=q[0].p,c=q[0].c;
+  var card=$('#deck .card:not(.behind)');
+  var dur=REDUCED?0:260;
+  if(card){
+    var st=card.querySelector('.stamp.'+(dir==='like'?'like':'nope'));if(st)st.style.opacity=1;
+    card.style.transition='transform '+dur+'ms ease, opacity '+dur+'ms ease';
+    card.style.transform='translateX('+(dir==='like'?640:-640)+'px) rotate('+(dir==='like'?18:-18)+'deg)';
+    card.style.opacity='0';
+  }
+  setTimeout(function(){
+    var matched=false;
+    if(dir==='like'){
+      S.likes.push(p.id);
+      if(likesBack(p,c)){S.matches.push({pid:p.id,at:Date.now(),msgs:[]});matched=true;}
+    }else{S.passes.push(p.id);}
+    save();ui.busy=false;renderDeck();renderBadge();
+    if(matched)showMatch(p,c);
+  },dur);
+}
+function showMatch(p,c){
+  $('#match-pair').innerHTML='<span class="bigpct">'+c.pct+'%</span>';
+  var why=c.reasons.slice(0,2).join('. ');
+  $('#match-text').textContent='Você e '+p.name+' combinam.'+(why?' '+why+'.':' Vocês podem descobrir jogos novos juntos.');
+  $('#match').hidden=false;
+  $('#match-chat').dataset.pid=p.id;
+  $('#match-chat').focus();
+}
+function closeMatch(){$('#match').hidden=true;}
+
+/* ---------- matches ---------- */
+function starters(p,c){
+  var out=[];
+  out.push(c.shared.length?'Bora de '+G[c.shared[0]].n+' '+WHEN[p.sched]+'?':'Qual jogo você me indica pra começar?');
+  var m3=S.profile.goals.slice(0,3),t3=p.goals.slice(0,3);
+  function both(id){return m3.indexOf(id)>=0&&t3.indexOf(id)>=0;}
+  if(both('profundo'))out.push('Qual jogo mexeu mais com você?');
+  if(both('leve'))out.push('Qual seu meme de jogo favorito?');
+  if(both('amizade'))out.push('Bora marcar um dia fixo pra jogar?');
+  if(both('competitivo'))out.push('Qual rank você está buscando?');
+  if(p.music&&S.profile.music)out.push('O que você escuta enquanto joga?');
+  return out.slice(0,4);
+}
+function replyFor(p,m){
+  var list=['Bora! Eu costumo jogar '+WHEN[p.sched]+'. Serve pra você?','Topo! Me chama no '+p.plats[0]+', é @'+p.handle+'.','Fechou. Manda o horário que eu entro.','Boa! Já estava com vontade de jogar acompanhado.'];
+  return list[Math.floor(m.msgs.length/2)%list.length];
+}
+function renderMatches(){
+  var box=$('#matches-box');
+  if(ui.thread){renderThread(box);return;}
+  var ms=S.matches.slice().sort(function(a,b){return b.at-a.at;});
+  if(!ms.length){
+    box.innerHTML='<div class="empty"><h3>Nenhum match ainda</h3><p>Curta jogadores na aba Descobrir. Quando os dois curtirem, a conversa aparece aqui.</p><a class="btn-like sm" style="display:inline-flex;align-items:center;text-decoration:none" href="#descobrir">Ir descobrir</a></div>';
+    return;
+  }
+  box.innerHTML='<ul class="list">'+ms.map(function(m){
+    var p=P[m.pid],c=compat(p),last=m.msgs[m.msgs.length-1];
+    var sub=last?last.t:(c.reasons[0]||'Diga oi');
+    return '<li><button class="row" type="button" data-open="'+p.id+'">'+av(p.id,p.handle)
+      +'<span class="rt"><b>'+esc(p.name)+'</b><span class="muted sub">'+esc(sub)+'</span></span>'
+      +'<span class="mono pct">'+c.pct+'%</span></button></li>';
+  }).join('')+'</ul>';
+}
+function renderThread(box){
+  var m=S.matches.filter(function(x){return x.pid===ui.thread;})[0];
+  if(!m){ui.thread=null;renderMatches();return;}
+  var p=P[m.pid],c=compat(p);
+  var sts=starters(p,c);
+  box.innerHTML='<div class="thread-head"><button class="link" type="button" data-back>← Matches</button>'+av(p.id,p.handle)
+    +'<div class="rt"><b>'+esc(p.name)+'</b><span class="mono muted">@'+esc(p.handle)+' · '+c.pct+'% sinergia</span></div></div>'
+    +'<div class="msgs">'+(m.msgs.length?m.msgs.map(function(x){return '<div class="msg '+x.from+'">'+esc(x.t)+'</div>';}).join(''):'<p class="muted center">'+esc(c.reasons[0]||'Vocês combinaram')+'. Escolha um assunto abaixo para começar.</p>')+'</div>'
+    +'<p class="note" style="margin:0 0 6px">Prévia: as respostas são simuladas.</p>'
+    +'<div class="composer"><div class="chips scroll">'+sts.map(function(t){return '<button class="chip btnchip" type="button" data-invite="'+esc(t)+'">'+esc(t)+'</button>';}).join('')+'</div>'
+    +'<form id="msg-form"><label class="sr" for="msg-in">Mensagem</label><input id="msg-in" type="text" autocomplete="off" maxlength="200" placeholder="Escreva uma mensagem"><button class="btn-like sm" type="submit">Enviar</button></form></div>';
+}
+function sendMsg(text){
+  text=text.trim();if(!text||!ui.thread)return;
+  var pid=ui.thread;
+  var m=S.matches.filter(function(x){return x.pid===pid;})[0];if(!m)return;
+  m.msgs.push({from:'me',t:text});save();renderThread($('#matches-box'));
+  requestAnimationFrame(function(){window.scrollTo(0,document.documentElement.scrollHeight);});
+  setTimeout(function(){
+    m.msgs.push({from:'them',t:replyFor(P[pid],m)});save();
+    if(ui.thread===pid&&location.hash==='#matches'){renderThread($('#matches-box'));requestAnimationFrame(function(){window.scrollTo(0,document.documentElement.scrollHeight);});}
+  },REDUCED?200:1100);
+}
+
+/* ---------- buscar ---------- */
+var TAGS={
+ hades:['roguelike','acao','2d','dificil','historia','solo'],
+ elden:['rpg','acao','mundo-aberto','dificil','historia','solo'],
+ stardew:['cozy','simulacao','2d','relaxante','coop','solo'],
+ valorant:['fps','competitivo','pvp','tatico','online'],
+ cs2:['fps','competitivo','pvp','tatico','online'],
+ lol:['moba','competitivo','pvp','estrategia','online'],
+ mine:['sandbox','sobrevivencia','coop','criativo','online'],
+ celeste:['plataforma','2d','dificil','historia','solo'],
+ bg3:['rpg','historia','estrategia','coop','solo'],
+ ittakestwo:['coop','historia','plataforma','aventura'],
+ overcooked:['coop','casual','caos','online'],
+ rocket:['esporte','competitivo','pvp','online'],
+ apex:['fps','competitivo','pvp','battle-royale','online'],
+ helldivers:['coop','fps','acao','online','caos'],
+ hollow:['plataforma','2d','dificil','metroidvania','historia','solo'],
+ terraria:['sandbox','sobrevivencia','2d','coop','criativo'],
+ civ6:['estrategia','solo','turnos','longo'],
+ fc:['esporte','competitivo','pvp','online'],
+ sf6:['luta','competitivo','pvp','dificil'],
+ amongus:['social','casual','online','caos'],
+ lethal:['coop','terror','online','caos','sobrevivencia']
+};
+var ALIAS={cs2:['cs','csgo','counter strike','cs go'],lol:['lol','league'],fc:['fifa','futebol','ea fc'],bg3:['bg3','baldurs gate','baldur'],civ6:['civ','civ 6','civilization'],ittakestwo:['it takes 2'],amongus:['among us'],mine:['minecraft'],elden:['elden ring'],helldivers:['hell divers'],lethal:['lethal company'],sf6:['sf6','street fighter','sf'],rocket:['rocket league'],hollow:['hollow knight','hk']};
+var TS={};GAMES.forEach(function(g){var s=new Set(TAGS[g.id]);s.add('g:'+g.g.toLowerCase());TS[g.id]=s;});
+function gameSim(a,b){
+  if(a===b)return 1;
+  var A=TS[a],B=TS[b],i=0;
+  A.forEach(function(t){if(B.has(t))i++;});
+  var u=A.size+B.size-i;
+  return u?Math.min(0.96,i/u*1.15):0;
+}
+function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+function compact(s){return norm(s).replace(/ /g,'');}
+function lev(a,b){
+  var m=a.length,n=b.length,d=[],i,j;
+  for(i=0;i<=m;i++){d[i]=[i];}
+  for(j=1;j<=n;j++){d[0][j]=j;}
+  for(i=1;i<=m;i++){for(j=1;j<=n;j++){d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));}}
+  return d[m][n];
+}
+function searchGames(text){
+  var q=compact(text);if(!q)return [];
+  var out=[];
+  GAMES.forEach(function(g){
+    var cands=[compact(g.n)].concat((ALIAS[g.id]||[]).map(compact)),best=0;
+    cands.forEach(function(c){
+      var s=0;
+      if(c===q)s=4;else if(c.indexOf(q)===0)s=3;else if(c.indexOf(q)>0)s=2;
+      else if(q.length>=4){if(lev(q,c.slice(0,q.length))<=1)s=1.5;else if(lev(q,c)<=2)s=1;}
+      if(s>best)best=s;
+    });
+    if(best>0)out.push({id:g.id,s:best,l:g.n.length});
+  });
+  out.sort(function(a,b){return b.s-a.s||a.l-b.l;});
+  return out.map(function(x){return x.id;});
+}
+function suggest(text){
+  var box=$('#q-sugg');if(!box)return;
+  if(!text.trim()){box.innerHTML='';return;}
+  var ids=searchGames(text).slice(0,6);
+  box.innerHTML=ids.length?ids.map(function(id){return '<button class="chip btnchip" type="button" data-q="'+id+'">'+esc(G[id].n)+'</button>';}).join(''):'<span class="hintp">Esse jogo ainda não está no catálogo. Tente outro nome.</span>';
+}
+function pickGame(id){
+  ui.q=id;
+  var inp=$('#q');if(inp)inp.value=G[id].n;
+  var sg=$('#q-sugg');if(sg)sg.innerHTML='';
+  renderSearch();
+}
+function playerScore(p,qid){
+  var sims=p.games.map(function(h){return {id:h,s:gameSim(qid,h)};}).sort(function(a,b){return b.s-a.s;});
+  var top=sims.slice(0,3),avg=top.reduce(function(a,x){return a+x.s;},0)/top.length;
+  var exact=sims[0].s===1;
+  var score=exact?0.97+0.03*avg:0.8*sims[0].s+0.2*avg;
+  return {score:score,pct:Math.round(score*100),sims:sims,best:sims[0],exact:exact};
+}
+function likePlayer(id){
+  if(S.likes.indexOf(id)>=0)return;
+  var p=P[id],c=compat(p),matched=false;
+  S.passes=S.passes.filter(function(x){return x!==id;});
+  S.likes.push(id);
+  if(likesBack(p,c)){S.matches.push({pid:id,at:Date.now(),msgs:[]});matched=true;}
+  save();renderBadge();renderSearch();
+  if(matched)showMatch(p,c);
+}
+function renderSearch(){
+  var out=$('#q-out');if(!out)return;
+  if(!ui.q){
+    out.innerHTML='<div class="empty"><h3>Escolha um jogo</h3><p>Quem joga o mesmo jogo, ou algo parecido, aparece na frente.</p></div>'
+      +'<div class="group" style="margin-top:20px"><div class="lbl">Seus jogos</div><div class="chips">'
+      +S.profile.games.slice(0,6).map(function(id){return '<button class="chip btnchip" type="button" data-q="'+id+'">'+esc(G[id].n)+'</button>';}).join('')+'</div></div>';
+    return;
+  }
+  var q=ui.q,g=G[q];
+  var similar=GAMES.filter(function(x){return x.id!==q;}).map(function(x){return {id:x.id,s:gameSim(q,x.id)};}).sort(function(a,b){return b.s-a.s;}).slice(0,6);
+  var rows=PLAYERS.map(function(p){return {p:p,r:playerScore(p,q),c:compat(p)};}).sort(function(a,b){return (b.r.score+b.c.pct/10000)-(a.r.score+a.c.pct/10000);}).slice(0,10);
+  var simHtml=similar.map(function(x){return '<button class="chip btnchip" type="button" data-q="'+x.id+'">'+esc(G[x.id].n)+' <span class="mono">'+Math.round(x.s*100)+'%</span></button>';}).join('');
+  var list=rows.map(function(row,i){
+    var p=row.p,r=row.r,b=r.best;
+    var why=r.exact?'Joga <b>'+esc(g.n)+'</b>, o jogo que você buscou.':'Curte <b>'+esc(G[b.id].n)+'</b>, '+Math.round(b.s*100)+'% parecido com '+esc(g.n)+'.';
+    var chips=r.sims.slice(0,4).map(function(x){return '<span class="chip'+(x.s>=0.8?' hit':'')+'">'+esc(G[x.id].n)+' <span class="mono">'+Math.round(x.s*100)+'%</span></span>';}).join('');
+    var matched=S.matches.some(function(m){return m.pid===p.id;}),liked=S.likes.indexOf(p.id)>=0;
+    var btn=matched?'<button class="btn-pass sm" type="button" data-chat="'+p.id+'">Conversar</button>':(liked?'<button class="btn-pass sm" type="button" disabled>Curtido</button>':'<button class="btn-like sm" type="button" data-like="'+p.id+'">Bora jogar</button>');
+    return '<article class="res'+(i<3?' top':'')+'"><div class="res-top"><div class="who"><h3>'+esc(p.name)+'</h3><span class="mono muted">@'+esc(p.handle)+' · '+esc(p.uf)+'</span></div>'
+      +'<div class="score sm"><b>'+r.pct+'%</b>'+segBar(r.pct)+'<span class="t">parecido</span></div></div>'
+      +'<p class="res-why">'+why+'</p><div class="chips">'+chips+'</div>'
+      +'<div class="res-foot"><span class="mono muted">Sinergia geral '+row.c.pct+'%</span>'+btn+'</div></article>';
+  }).join('');
+  out.innerHTML='<div class="similar"><div class="lbl">Jogos parecidos com '+esc(g.n)+'</div><div class="chips scroll">'+simHtml+'</div></div>'
+    +'<h3 class="restitle">Quem combina com '+esc(g.n)+'</h3>'+list;
+}
+
+/* ---------- jogos ---------- */
+function renderGames(){
+  var fl=['Todos'].concat(GENRES);
+  var chips=fl.map(function(g){return '<button class="chip btnchip" type="button" data-genre="'+esc(g)+'" aria-pressed="'+(ui.genre===g)+'">'+esc(g)+'</button>';}).join('');
+  var list=GAMES.filter(function(g){return ui.genre==='Todos'||g.g===ui.genre;}).map(function(g){
+    var r=S.ratings[g.id];
+    var n=PLAYERS.filter(function(p){return p.games.indexOf(g.id)>=0;}).length;
+    var stars=[1,2,3,4,5].map(function(i){return '<button class="star'+(r&&r.stars>=i?' on':'')+'" type="button" data-rate="'+g.id+':'+i+'" aria-label="'+i+' de 5 para '+esc(g.n)+'" aria-pressed="'+!!(r&&r.stars===i)+'">★</button>';}).join('');
+    var rev=r?'<div class="review"><label class="sr" for="rv-'+g.id+'">Sua avaliação de '+esc(g.n)+'</label><input id="rv-'+g.id+'" type="text" data-review="'+g.id+'" maxlength="140" placeholder="Uma linha sobre o jogo" value="'+esc(r.text||'')+'"><button class="btn-pass sm" type="button" data-share="'+g.id+'">Compartilhar</button></div>':'';
+    return '<article class="game"><div class="game-top"><div><h3>'+esc(g.n)+'</h3><div class="meta"><span class="pill">'+esc(g.g)+'</span><span class="mono muted">'+n+' jogadores</span></div></div><div class="stars" role="group" aria-label="Sua nota para '+esc(g.n)+'">'+stars+'</div></div>'+rev+'</article>';
+  }).join('');
+  $('#games-box').innerHTML='<div class="chips scroll" role="group" aria-label="Filtrar por gênero">'+chips+'</div>'+list;
+}
+function rate(id,n){
+  var cur=S.ratings[id];
+  if(cur&&cur.stars===n){delete S.ratings[id];}else{S.ratings[id]={stars:n,text:(cur&&cur.text)||''};}
+  save();renderGames();
+}
+function shareText(id){
+  var r=S.ratings[id],g=G[id];if(!r)return '';
+  return 'Dei '+r.stars+'/5 pra '+g.n+' no Joga Junto'+(r.text?': “'+r.text+'”':'')+'. Joga comigo? @'+S.profile.handle;
+}
+var toastT=null;
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show');},1800);}
+function copyText(t){
+  var done=function(){toast('Copiado');};
+  var fail=function(){var ta=$('#copy-ta');ta.value=t;$('#copybox').hidden=false;ta.focus();ta.select();};
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fail);}else{fail();}
+  }catch(e){fail();}
+}
+
+/* ---------- perfil ---------- */
+function toggleIn(arr,v){var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);}
+function moveGoal(id,delta){
+  var g=S.profile.goals,i=g.indexOf(id),j=i+delta;
+  if(i<0||j<0||j>=g.length)return;
+  g.splice(i,1);g.splice(j,0,id);save();renderProfile();
+  var b=$('[data-'+(delta<0?'up':'down')+'="'+id+'"]');
+  if(!b||b.disabled)b=$('[data-'+(delta<0?'down':'up')+'="'+id+'"]');
+  if(b)b.focus();
+}
+function renderProfile(){
+  var pr=S.profile,mine=myGames();
+  var counts={};mine.forEach(function(id){counts[G[id].g]=(counts[G[id].g]||0)+1;});
+  var keys=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];});
+  var max=keys.length?counts[keys[0]]:1;
+  var bars=keys.length?keys.map(function(k){return '<div class="bar"><span>'+esc(k)+'</span><span class="track"><i style="width:'+Math.round(counts[k]/max*100)+'%"></i></span><span class="mono">'+counts[k]+'</span></div>';}).join(''):'<p class="hintp">Marque alguns jogos para ver seu gosto.</p>';
+  function chipRow(list,sel,attr){return '<div class="chips">'+list.map(function(x){var on=Array.isArray(sel)?sel.indexOf(x)>=0:sel===x;return '<button class="chip btnchip" type="button" '+attr+'="'+esc(x)+'" aria-pressed="'+on+'">'+esc(x)+'</button>';}).join('')+'</div>';}
+  var last=pr.goals.length-1;
+  var rank='<ol class="rank">'+pr.goals.map(function(id,i){
+    return '<li class="rankrow'+(i<3?' top':'')+'"><span class="rk mono">'+(i+1)+'</span><span class="rt"><b>'+esc(GOALS[id].n)+'</b><span class="muted sub">'+esc(GOALS[id].d)+'</span></span>'
+      +'<span class="mv"><button type="button" data-up="'+id+'" aria-label="Subir '+esc(GOALS[id].n)+'"'+(i===0?' disabled':'')+'>↑</button>'
+      +'<button type="button" data-down="'+id+'" aria-label="Descer '+esc(GOALS[id].n)+'"'+(i===last?' disabled':'')+'>↓</button></span></li>';
+  }).join('')+'</ol>';
+  $('#profile-box').innerHTML=
+    '<div class="group"><label class="lbl" for="handle">Seu nick</label><input id="handle" type="text" maxlength="20" autocomplete="off" value="'+esc(pr.handle)+'"></div>'
+   +'<div class="group"><div class="lblrow"><label class="lbl" for="comp">Jeito de jogar</label><span class="mono" id="comp-label">'+modeLabel(pr.comp)+'</span></div>'
+   +'<input id="comp" type="range" min="0" max="100" step="5" value="'+pr.comp+'"><div class="lblrow muted mono"><span>CASUAL</span><span>COMPETITIVO</span></div></div>'
+   +'<div class="group"><div class="lbl">Seus objetivos, em ordem</div><p class="hintp">O primeiro é o que mais importa para você. Quem tem objetivos parecidos, na mesma ordem, aparece primeiro na fila.</p>'+rank+'</div>'
+   +'<div class="group"><div class="lbl">Música</div>'
+   +'<div class="chips"><button class="chip btnchip" type="button" data-music="1" aria-pressed="'+(pr.music===true)+'">Curto música</button><button class="chip btnchip" type="button" data-music="0" aria-pressed="'+(pr.music===false)+'">Prefiro sem música</button></div></div>'
+   +'<div class="group"><div class="lbl">Jogos favoritos</div><div class="picks">'+GAMES.map(function(g){return '<button class="pick" type="button" data-pick="'+g.id+'" aria-pressed="'+(pr.games.indexOf(g.id)>=0)+'">'+esc(g.n)+'<small>'+esc(g.g)+'</small></button>';}).join('')+'</div></div>'
+   +'<div class="group"><div class="lbl">Seu gosto por gênero</div>'+bars+'</div>'
+   +'<div class="group"><div class="lbl">Onde você joga</div>'+chipRow(PLATS,pr.plats,'data-plat')+'</div>'
+   +'<div class="group"><div class="lbl">Quando você joga</div>'+chipRow(SCHEDS,pr.sched,'data-sched')+'</div>'
+   +'<div class="group danger">'+(ui.confirmReset
+      ?'<p class="hintp">Isso apaga perfil, notas, curtidas e conversas deste navegador. Não dá para desfazer.</p><div class="actions" style="margin:0"><button class="btn-like sm" type="button" id="reset-yes">Apagar tudo</button><button class="btn-pass sm" type="button" id="reset-no">Cancelar</button></div>'
+      :'<button class="btn-pass sm" type="button" id="reset-ask" style="align-self:flex-start">Apagar meus dados</button>')+'</div>';
+}
+
+/* ---------- shell ---------- */
+function renderBadge(){var b=$('#badge'),n=S.matches.length;b.textContent=n;b.hidden=!n;renderLevel();}
+var VIEWS=['descobrir','matches','buscar','jogos','perfil'];
+function route(){
+  var h=location.hash.slice(1),v=VIEWS.indexOf(h)>=0?h:'descobrir';
+  VIEWS.forEach(function(n){$('#v-'+n).hidden=n!==v;});
+  document.querySelectorAll('.tab').forEach(function(a){var on=a.dataset.v===v;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  if(v==='descobrir')renderDeck();
+  if(v==='matches')renderMatches();
+  if(v==='buscar')renderSearch();
+  if(v==='jogos')renderGames();
+  if(v==='perfil')renderProfile();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+
+document.addEventListener('click',function(e){
+  var t=e.target.closest('button,a');if(!t)return;
+  var d=t.dataset;
+  if(t.id==='btn-pass'){decide('pass');return;}
+  if(t.id==='btn-like'){decide('like');return;}
+  if(t.id==='reset-deck'){S.passes=[];save();renderDeck();return;}
+  if(t.id==='match-close'){closeMatch();return;}
+  if(t.id==='match-chat'){ui.thread=d.pid;closeMatch();if(location.hash==='#matches')renderMatches();else location.hash='#matches';return;}
+  if(t.id==='copy-close'){$('#copybox').hidden=true;return;}
+  if(d.open){ui.thread=d.open;renderMatches();window.scrollTo(0,0);return;}
+  if(d.back!==undefined){ui.thread=null;renderMatches();return;}
+  if(d.q){pickGame(d.q);return;}
+  if(d.like){likePlayer(d.like);return;}
+  if(d.chat){ui.thread=d.chat;location.hash='#matches';return;}
+  if(d.invite){sendMsg(d.invite);return;}
+  if(d.genre){ui.genre=d.genre;renderGames();return;}
+  if(d.rate){var a=d.rate.split(':');rate(a[0],parseInt(a[1],10));return;}
+  if(d.share){copyText(shareText(d.share));return;}
+  if(d.up){moveGoal(d.up,-1);return;}
+  if(d.down){moveGoal(d.down,1);return;}
+  if(d.music!==undefined){S.profile.music=d.music==='1';save();renderProfile();return;}
+  if(d.plat){toggleIn(S.profile.plats,d.plat);save();renderProfile();return;}
+  if(d.sched){S.profile.sched=d.sched;save();renderProfile();return;}
+  if(d.pick){toggleIn(S.profile.games,d.pick);save();renderProfile();return;}
+  if(t.id==='reset-ask'){ui.confirmReset=true;renderProfile();return;}
+  if(t.id==='reset-no'){ui.confirmReset=false;renderProfile();return;}
+  if(t.id==='reset-yes'){S=defaults();save();ui.confirmReset=false;ui.thread=null;renderBadge();renderProfile();toast('Dados apagados');return;}
+});
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.dataset&&t.dataset.review){var r=S.ratings[t.dataset.review];if(r){r.text=t.value;save();}return;}
+  if(t.id==='q'){suggest(t.value);return;}
+  if(t.id==='handle'){var v=t.value.replace(/[^\w.]/g,'').slice(0,20);if(v!==t.value)t.value=v;S.profile.handle=v||'seu_nick';save();return;}
+  if(t.id==='comp'){S.profile.comp=parseInt(t.value,10)||0;$('#comp-label').textContent=modeLabel(S.profile.comp);save();}
+});
+document.addEventListener('submit',function(e){
+  if(e.target.id==='q-form'){e.preventDefault();var ids=searchGames($('#q').value);if(ids.length)pickGame(ids[0]);return;}
+  if(e.target.id==='msg-form'){e.preventDefault();sendMsg($('#msg-in').value);var n=$('#msg-in');if(n)n.focus();}
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeMatch();$('#copybox').hidden=true;return;}
+  var tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea')return;
+  if(!$('#match').hidden||$('#v-descobrir').hidden)return;
+  if(e.key==='ArrowRight')decide('like');
+  if(e.key==='ArrowLeft')decide('pass');
+});
+
+renderBadge();
+route();
+})();
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body>
+</html>
