@@ -11,10 +11,10 @@ import sys
 
 
 import urllib.parse
-_svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><rect width="108" height="108" rx="22" fill="#080913"/>'
-        '<g fill="none" stroke-width="8" stroke-linecap="round"><path d="M48,42V62Q48,76 36,76" stroke="#22E6FF"/>'
-        '<path d="M72,42V62Q72,76 60,76" stroke="#FF2F7D"/></g><circle cx="48" cy="30" r="7.5" fill="#22E6FF"/>'
-        '<circle cx="72" cy="30" r="7.5" fill="#FF2F7D"/></svg>')
+_svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#080913"/>'
+        '<g fill="none" stroke-width="66" transform="translate(46 46) scale(.82)">'
+        '<path d="M112 92H280M196 92V318A92 92 0 0 1 104 410H74" stroke="#22E6FF"/>'
+        '<path d="M400 420H232M316 420V194A92 92 0 0 1 408 102H438" stroke="#FF2F7D"/></g></svg>')
 FAVICON = urllib.parse.quote(_svg, safe='')
 
 root = pathlib.Path(__file__).resolve().parent.parent

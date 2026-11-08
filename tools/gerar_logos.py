@@ -222,10 +222,12 @@ def ponto():
                    f'<circle cx="128" cy="312" r="34" fill="{C}"/>')
 
 
-NOVAS = (('nova-sorriso', sorriso), ('nova-encostados', encostados), ('nova-ponto', ponto))
+# Aprovada pelo cliente em 08/11/2026: a Giro, um J e outro J de cabeça para baixo.
+NOVAS = (('logo-aprovada', giro),)
 DESCARTADAS = (('logo-1', alavanca), ('logo-2', direcional), ('logo-3', controle),
                ('logo-4', eco), ('logo-5', emblema), ('logo-6', ligadura),
-               ('anterior-giro', giro), ('anterior-alavanca-plana', alavanca_plana),
+               ('nova-sorriso', sorriso), ('nova-encostados', encostados), ('nova-ponto', ponto),
+               ('anterior-alavanca-plana', alavanca_plana),
                ('anterior-direcional-plano', direcional_plano), ('anterior-controle-plano', controle_plano))
 
 (SAIDA / 'descartadas').mkdir(parents=True, exist_ok=True)

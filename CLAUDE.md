@@ -15,7 +15,7 @@ Decisões de produto que o dono pediu e devem continuar valendo:
 - A afinidade pesa: jogos em comum 30%, objetivos em comum e ordem 30%, ritmo 15%, gêneros 10%, música 10%, horário 5%.
 - A busca por jogo mede similaridade por características (gênero, 2D, difícil, co-op, competitivo etc.). "Quanto mais
   parecido, melhor" ordena a lista.
-- Nome: **Joga Junto**. Logo: "JJ" imitando joystick (duas letras j com bolas no lugar do pingo, uma ciano e uma magenta).
+- Nome: **Joga Junto**. Logo aprovada por Daniel em 08/11/2026: a Giro, um J ciano e outro J magenta de cabeça para baixo (`web/propostas/logo-aprovada.svg`). Ela aparece no topo do app, no ícone do site (`make_web.py`) e nos ícones do APK (`android/.../drawable`).
 
 ## Estado real, sem enfeite
 
