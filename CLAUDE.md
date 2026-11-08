@@ -67,6 +67,13 @@ que mudou e rode `make_web.py`. Mudança só no banco não avisa: se precisar av
 A logo do topo e o ícone do navegador mudam com o site. O ícone do APK na tela do celular fica em `android/` e exige
 instalar o APK de novo.
 
+## Contas (decidido em 08/11/2026)
+
+Login obrigatório, só Google por enquanto, 18 anos ou mais, e os dados do celular vão para a conta no primeiro login.
+Usa Supabase Auth com PKCE, sem biblioteca; estado da pessoa em `private.contas` (`banco/contas.sql`). A tela de entrada só
+vale quando o provedor Google está ligado no Supabase (`/auth/v1/settings`). No APK, o login abre no navegador, porque o
+Google bloqueia WebView, e volta por `web/login-volta.html` e `jogajunto://login`. Vem antes de amigos e posts.
+
 ## Conexão com a Steam
 
 Login oficial por OpenID na função `supabase/functions/steam`, com dados em `private.steam_conexoes` (`banco/steam.sql`).
@@ -77,7 +84,6 @@ Publicar a função: `npx.cmd --yes supabase@3.0.0 functions deploy steam --remo
 ## Próximos itens combinados com o dono (08/11/2026)
 
 Combinar cada item com ele antes de fazer.
-- Área de login, com entrada direta pela conta Google. Vem antes de amigos e posts, que dependem de contas de verdade.
 - Adicionar amigos e fazer posts que os amigos veem.
 - Conectar Instagram e TikTok.
 - Conexão real com PSN e Xbox pelo menos (Steam já feita). A da PSN não tem caminho oficial: decidir com ele.

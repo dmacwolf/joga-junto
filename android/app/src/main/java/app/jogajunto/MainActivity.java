@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " JogaJuntoApp");
+        settings.setUserAgentString(settings.getUserAgentString() + " JogaJuntoApp/2");
 
         final Uri home = Uri.parse(BuildConfig.APP_URL);
 
@@ -96,7 +96,16 @@ public class MainActivity extends Activity {
     /** Depois do login no navegador, a Steam volta por jogajunto://steam e o app guarda a conexão. */
     private boolean abrirRetornoSteam(Intent intent) {
         Uri dados = intent == null ? null : intent.getData();
-        if (dados == null || !"jogajunto".equals(dados.getScheme()) || !"steam".equals(dados.getHost())) {
+        if (dados == null || !"jogajunto".equals(dados.getScheme())) {
+            return false;
+        }
+        if ("login".equals(dados.getHost())) {
+            String codigo = dados.getQueryParameter("code");
+            boolean valido = codigo != null && codigo.matches("[0-9a-zA-Z-]{20,100}");
+            web.loadUrl(BuildConfig.APP_URL + "login-volta.html" + (valido ? "?code=" + codigo : "?erro=falha"));
+            return true;
+        }
+        if (!"steam".equals(dados.getHost())) {
             return false;
         }
         String token = dados.getQueryParameter("t");

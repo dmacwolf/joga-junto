@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080913">
+<title>Joga Junto</title>
+<style>
+html,body{margin:0;height:100%;background:#080913;color:#fff;font-family:system-ui,sans-serif}
+main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;box-sizing:border-box}
+a{display:inline-block;padding:14px 22px;background:#FF2F7D;color:#fff;font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+  <p id="msg">Voltando para o Joga Junto...</p>
+  <a id="abrir" href="./" hidden>Voltar para o Joga Junto</a>
+</main>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search),code=q.get('code')||'',valido=/^[0-9a-zA-Z-]{20,100}$/.test(code);
+  if(q.get('a')==='app'){
+    var alvo='jogajunto://login?'+(valido?'code='+encodeURIComponent(code):'erro=falha');
+    var a=document.getElementById('abrir');
+    a.href=alvo;a.hidden=false;
+    document.getElementById('msg').textContent='Tudo certo com o Google.';
+    location.href=alvo;
+    return;
+  }
+  try{
+    if(valido)localStorage.setItem('jogajunto-login-code',code);
+    else localStorage.setItem('jogajunto-login-erro','falha');
+  }catch(e){}
+  location.replace('./');
+})();
+</script>
+</body>
+</html>

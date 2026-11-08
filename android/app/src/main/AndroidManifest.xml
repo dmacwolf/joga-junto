@@ -28,6 +28,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="jogajunto" android:host="steam" />
+                <data android:scheme="jogajunto" android:host="login" />
             </intent-filter>
         </activity>
 
