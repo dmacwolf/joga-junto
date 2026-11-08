@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#080913">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20108%20108%22%3E%3Crect%20width%3D%22108%22%20height%3D%22108%22%20rx%3D%2222%22%20fill%3D%22%23080913%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke-width%3D%228%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M48%2C42V62Q48%2C76%2036%2C76%22%20stroke%3D%22%2322E6FF%22%2F%3E%3Cpath%20d%3D%22M72%2C42V62Q72%2C76%2060%2C76%22%20stroke%3D%22%23FF2F7D%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%2322E6FF%22%2F%3E%3Ccircle%20cx%3D%2272%22%20cy%3D%2230%22%20r%3D%227.5%22%20fill%3D%22%23FF2F7D%22%2F%3E%3C%2Fsvg%3E">
 <style>html{background:#080913;color-scheme:dark;-webkit-text-size-adjust:100%}[hidden]{display:none!important}img{max-width:100%}</style>
+<meta name="jj-versao" content="d58be0cf3be2">
 <title>Joga Junto</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -126,6 +127,18 @@ h2.title::after{content:"";display:block;height:3px;width:46px;margin-top:8px;ba
 @media (hover:none){.keys{display:none}}
 .note{margin:18px 0 0;font-size:13.5px;color:var(--muted)}
 @media (max-height:793px){.deck-note{margin-top:92px}}
+.pedir{display:flex;align-items:center;justify-content:center;text-decoration:none;margin:0 0 24px}
+.ped-ta{width:100%;min-height:160px;border:1.5px solid var(--line);background:var(--surface-2);padding:10px 12px;font-size:16px;border-radius:2px;resize:vertical}
+.ped-ta:focus{border-color:var(--cyan)}
+.ped-send{align-self:flex-start}
+.ped-erro{margin:0;font-size:14px;color:var(--magenta)}
+.ped-item{background:var(--surface-2);border-left:3px solid var(--cyan);padding:12px 14px;margin:0 0 10px}
+.ped-item.feito{border-left-color:var(--magenta)}
+.ped-top{display:flex;justify-content:space-between;gap:10px;margin:0 0 6px;color:var(--muted)}
+.ped-st{font-weight:700;color:var(--cyan);text-transform:uppercase}
+.ped-item.feito .ped-st{color:var(--magenta)}
+.ped-txt{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.ped-resp{margin:8px 0 0;font-size:14px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
 
 .empty{border:2px dashed var(--line);padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;background:rgba(16,19,43,.6)}
 .empty h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
@@ -279,7 +292,26 @@ input[type=range]{width:100%;height:34px;margin:0;accent-color:var(--magenta)}
   <section id="v-perfil" aria-label="Perfil" hidden>
     <h2 class="title">Seu perfil</h2>
     <p class="lede">Já deixei um perfil de exemplo. Ajuste e a fila de jogadores se reordena.</p>
+    <a class="btn-like sm pedir" href="#pedidos">Pedir mudanças no app</a>
     <div id="profile-box"></div>
+  </section>
+
+  <section id="v-pedidos" aria-label="Pedir mudanças no app" hidden>
+    <h2 class="title">Pedir mudanças</h2>
+    <p class="lede">Escreva tudo o que quer mudar no app. Quando a mudança ficar pronta, ela aparece aqui como feita e o app já se atualiza sozinho.</p>
+    <form id="ped-code-form" class="group" autocomplete="off" hidden>
+      <label class="lbl" for="ped-code">Código de acesso</label>
+      <input id="ped-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="JOGA-XXXX-XXXX">
+      <p class="ped-erro" id="ped-code-erro" hidden></p>
+      <button class="btn-like sm ped-send" type="submit">Entrar</button>
+    </form>
+    <form id="ped-form" class="group" autocomplete="off" hidden>
+      <label class="lbl" for="ped-texto">O que você quer mudar?</label>
+      <textarea id="ped-texto" class="ped-ta" maxlength="4000" placeholder="Ex.: trocar a cor dos botões, mudar o nome de uma aba..."></textarea>
+      <p class="ped-erro" id="ped-erro" hidden></p>
+      <button class="btn-like sm ped-send" id="ped-enviar" type="submit">Enviar pedido</button>
+    </form>
+    <div id="ped-lista"></div>
   </section>
 </div>
 
@@ -754,18 +786,72 @@ function renderProfile(){
       :'<button class="btn-pass sm" type="button" id="reset-ask" style="align-self:flex-start">Apagar meus dados</button>')+'</div>';
 }
 
+/* ---------- pedidos de mudança ---------- */
+var PED={url:'https://mlfxwdfuadcactwwbjyl.supabase.co/rest/v1/rpc/',key:'sb_publishable_4sRyRGc6bADRWtuD-Js-QQ_BLgQx162',kCod:'jogajunto-pedidos-codigo',kRas:'jogajunto-pedidos-rascunho'};
+var PED_ST={novo:'Recebido',fazendo:'Em andamento',feito:'Feito',recusado:'Não feito'};
+var PED_OFF='Não consegui falar com o servidor. Seu texto continua aqui, tente de novo em instantes.';
+function pedGet(k){try{return localStorage.getItem(k)||'';}catch(e){return '';}}
+function pedSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);}catch(e){}}
+function pedCall(fn,body){return fetch(PED.url+fn,{method:'POST',headers:{'apikey':PED.key,'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.message||'erro');return d;});});}
+function pedErro(id,msg){var e=$(id);e.textContent=msg||'';e.hidden=!msg;}
+function pedSair(msg){pedSet(PED.kCod,'');renderPedidos();pedErro('#ped-code-erro',msg);}
+function pedLista(){
+  var box=$('#ped-lista'),cod=pedGet(PED.kCod);
+  if(!cod){box.innerHTML='';return;}
+  pedCall('jj_pedidos',{codigo:cod}).then(function(l){
+    box.innerHTML=l.length?'<div class="group"><div class="lbl">Seus pedidos</div></div>'+l.map(function(p){
+      var d=new Date(p.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+      return '<div class="ped-item'+(p.status==='feito'?' feito':'')+'"><p class="ped-top mono"><span class="ped-st">'+esc(PED_ST[p.status]||p.status)+'</span><span>'+esc(d)+'</span></p><p class="ped-txt">'+esc(p.texto)+'</p>'+(p.resposta?'<p class="ped-resp">'+esc(p.resposta)+'</p>':'')+'</div>';
+    }).join(''):'';
+  }).catch(function(e){
+    if(e.message==='codigo_invalido'){pedSair('Esse código não vale mais. Peça o novo.');return;}
+    box.innerHTML='<p class="hintp">'+esc(PED_OFF)+'</p>';
+  });
+}
+function renderPedidos(){
+  var tem=!!pedGet(PED.kCod);
+  $('#ped-code-form').hidden=tem;$('#ped-form').hidden=!tem;
+  pedErro('#ped-code-erro','');pedErro('#ped-erro','');
+  if(tem){var ta=$('#ped-texto');if(!ta.value)ta.value=pedGet(PED.kRas);}
+  pedLista();
+}
+$('#ped-texto').addEventListener('input',function(){pedSet(PED.kRas,this.value);});
+$('#ped-code-form').addEventListener('submit',function(e){
+  e.preventDefault();
+  var c=$('#ped-code').value.trim().toUpperCase();
+  if(!c)return;
+  pedErro('#ped-code-erro','');
+  pedCall('jj_codigo_ok',{codigo:c}).then(function(ok){
+    if(!ok){pedErro('#ped-code-erro','Código incorreto. Confira e tente de novo.');return;}
+    pedSet(PED.kCod,c);$('#ped-code').value='';renderPedidos();
+  }).catch(function(){pedErro('#ped-code-erro',PED_OFF);});
+});
+$('#ped-form').addEventListener('submit',function(e){
+  e.preventDefault();
+  var ta=$('#ped-texto'),btn=$('#ped-enviar'),txt=ta.value.trim();
+  if(!txt||btn.disabled)return;
+  btn.disabled=true;pedErro('#ped-erro','');
+  pedCall('jj_enviar_pedido',{codigo:pedGet(PED.kCod),texto:txt}).then(function(){
+    ta.value='';pedSet(PED.kRas,'');toast('Pedido enviado');pedLista();
+  }).catch(function(err){
+    if(err.message==='codigo_invalido'){pedSair('Esse código não vale mais. Peça o novo.');return;}
+    pedErro('#ped-erro',err.message==='limite'?'Muitos pedidos em pouco tempo. Tente de novo mais tarde.':PED_OFF);
+  }).then(function(){btn.disabled=false;});
+});
+
 /* ---------- shell ---------- */
 function renderBadge(){var b=$('#badge'),n=S.matches.length;b.textContent=n;b.hidden=!n;renderLevel();}
-var VIEWS=['descobrir','matches','buscar','jogos','perfil'];
+var VIEWS=['descobrir','matches','buscar','jogos','perfil','pedidos'];
 function route(){
   var h=location.hash.slice(1),v=VIEWS.indexOf(h)>=0?h:'descobrir';
   VIEWS.forEach(function(n){$('#v-'+n).hidden=n!==v;});
-  document.querySelectorAll('.tab').forEach(function(a){var on=a.dataset.v===v;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  document.querySelectorAll('.tab').forEach(function(a){var on=a.dataset.v===v||(v==='pedidos'&&a.dataset.v==='perfil');a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   if(v==='descobrir')renderDeck();
   if(v==='matches')renderMatches();
   if(v==='buscar')renderSearch();
   if(v==='jogos')renderGames();
   if(v==='perfil')renderProfile();
+  if(v==='pedidos')renderPedidos();
   window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',route);
@@ -823,5 +909,19 @@ route();
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+<script>(function(){
+var atual=document.querySelector('meta[name="jj-versao"]').content,ult=0;
+function checa(){
+  if(document.visibilityState!=='visible'||Date.now()-ult<30000)return;
+  var a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;
+  ult=Date.now();
+  fetch(location.pathname,{cache:'no-store'}).then(function(r){return r.text();}).then(function(t){
+    var m=t.match(/name="jj-versao" content="([0-9a-f]+)"/);
+    if(m&&m[1]!==atual)location.reload();
+  }).catch(function(){});
+}
+document.addEventListener('visibilitychange',checa);
+setInterval(checa,300000);
+})();</script>
 </body>
 </html>

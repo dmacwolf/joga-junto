@@ -3,6 +3,7 @@
 
 Uso: python3 tools/make_web.py
 """
+import hashlib
 import pathlib
 import re
 import sys
@@ -39,7 +40,26 @@ sw = (
     "navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>"
 )
 
-html = head_base + head + '</head>\n<body>\n' + body.rstrip() + '\n' + sw + '\n</body>\n</html>\n'
+# Ao voltar para o app já aberto, confere se há versão nova e recarrega (nunca com alguém digitando).
+atualizar = r"""<script>(function(){
+var atual=document.querySelector('meta[name="jj-versao"]').content,ult=0;
+function checa(){
+  if(document.visibilityState!=='visible'||Date.now()-ult<30000)return;
+  var a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName))return;
+  ult=Date.now();
+  fetch(location.pathname,{cache:'no-store'}).then(function(r){return r.text();}).then(function(t){
+    var m=t.match(/name="jj-versao" content="([0-9a-f]+)"/);
+    if(m&&m[1]!==atual)location.reload();
+  }).catch(function(){});
+}
+document.addEventListener('visibilitychange',checa);
+setInterval(checa,300000);
+})();</script>"""
+
+versao = hashlib.sha256((head + body).encode('utf-8')).hexdigest()[:12]
+head_base += '<meta name="jj-versao" content="' + versao + '">\n'
+
+html = head_base + head + '</head>\n<body>\n' + body.rstrip() + '\n' + sw + '\n' + atualizar + '\n</body>\n</html>\n'
 (root / 'web').mkdir(exist_ok=True)
 (root / 'web' / 'index.html').write_text(html, encoding='utf-8')
 print('web/index.html gerado (%d bytes)' % len(html))
