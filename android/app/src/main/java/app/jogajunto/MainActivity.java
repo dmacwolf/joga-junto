@@ -37,7 +37,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         web = new WebView(this);
-        web.setBackgroundColor(0xFF080913);
+        // Transparente: enquanto a página carrega, aparece a logo da tela de abertura atrás.
+        web.setBackgroundColor(0x00000000);
         setContentView(web);
 
         WebSettings settings = web.getSettings();
